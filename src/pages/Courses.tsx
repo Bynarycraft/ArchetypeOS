@@ -176,14 +176,14 @@ export default function Courses() {
 
               return (
                 <Card key={course.id} className="flex flex-col hover:shadow-lg transition-shadow">
-                  <CardHeader>
+               <CardHeader className="pb-3">
                     <div className="flex items-start justify-between gap-2">
                       <CardTitle className="text-lg line-clamp-2">{course.title}</CardTitle>
                       {isCompleted && (
                         <CheckCircle className="h-5 w-5 text-success shrink-0" />
                       )}
                     </div>
-                    <CardDescription className="line-clamp-2">
+                 <CardDescription className="line-clamp-2 mt-1.5">
                       {course.description || 'No description available'}
                     </CardDescription>
                   </CardHeader>

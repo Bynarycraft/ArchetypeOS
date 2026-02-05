@@ -4,9 +4,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Loader2, AlertCircle, CheckCircle } from 'lucide-react';
+ import { Loader2, AlertCircle, CheckCircle, Mail, Lock, User } from 'lucide-react';
 import { z } from 'zod';
 
 const authSchema = z.object({
@@ -83,108 +82,98 @@ export function AuthForm({ mode, onModeChange }: AuthFormProps) {
   };
 
   return (
-    <Card className="w-full max-w-md mx-auto shadow-lg">
-      <CardHeader className="space-y-1">
-        <CardTitle className="text-2xl font-bold tracking-tight">
-          {mode === 'signin' ? 'Welcome back' : 'Create an account'}
-        </CardTitle>
-        <CardDescription>
-          {mode === 'signin'
-            ? 'Enter your credentials to access your account'
-            : 'Start your learning journey with ArchetypeOS'}
-        </CardDescription>
-      </CardHeader>
-      <form onSubmit={handleSubmit}>
-        <CardContent className="space-y-4">
-          {error && (
-            <Alert variant="destructive" className="animate-fade-in">
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
-          
-          {success && (
-            <Alert className="border-success bg-success/10 text-success animate-fade-in">
-              <CheckCircle className="h-4 w-4" />
-              <AlertDescription>{success}</AlertDescription>
-            </Alert>
-          )}
+     <form onSubmit={handleSubmit} className="space-y-5">
+       {error && (
+         <Alert variant="destructive" className="animate-fade-in">
+           <AlertCircle className="h-4 w-4" />
+           <AlertDescription>{error}</AlertDescription>
+         </Alert>
+       )}
+       
+       {success && (
+         <Alert className="border-success bg-success/10 text-success animate-fade-in">
+           <CheckCircle className="h-4 w-4" />
+           <AlertDescription>{success}</AlertDescription>
+         </Alert>
+       )}
 
-          {mode === 'signup' && (
-            <div className="space-y-2">
-              <Label htmlFor="fullName">Full Name</Label>
+       {mode === 'signup' && (
+         <div className="space-y-2">
+           <Label htmlFor="fullName" className="text-sm font-medium">Full Name</Label>
+           <div className="relative">
+             <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 id="fullName"
                 type="text"
                 placeholder="John Doe"
+               className="pl-10"
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
                 disabled={loading}
                 required
               />
             </div>
-          )}
+         </div>
+       )}
 
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+       <div className="space-y-2">
+         <Label htmlFor="email" className="text-sm font-medium">Email</Label>
+         <div className="relative">
+           <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               id="email"
               type="email"
               placeholder="name@example.com"
+             className="pl-10"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               disabled={loading}
               required
             />
           </div>
+       </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
+       <div className="space-y-2">
+         <Label htmlFor="password" className="text-sm font-medium">Password</Label>
+         <div className="relative">
+           <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               id="password"
               type="password"
               placeholder="••••••••"
+             className="pl-10"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               disabled={loading}
               required
             />
           </div>
-        </CardContent>
+       </div>
 
-        <CardFooter className="flex flex-col space-y-4">
-          <Button type="submit" className="w-full" disabled={loading}>
-            {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {mode === 'signin' ? 'Sign In' : 'Create Account'}
-          </Button>
+       <Button type="submit" className="w-full h-11 font-medium" disabled={loading}>
+         {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+         {mode === 'signin' ? 'Sign In' : 'Create Account'}
+       </Button>
 
-          <p className="text-sm text-muted-foreground text-center">
-            {mode === 'signin' ? (
-              <>
-                Don't have an account?{' '}
-                <button
-                  type="button"
-                  onClick={() => onModeChange('signup')}
-                  className="text-accent hover:underline font-medium"
-                >
-                  Sign up
-                </button>
-              </>
-            ) : (
-              <>
-                Already have an account?{' '}
-                <button
-                  type="button"
-                  onClick={() => onModeChange('signin')}
-                  className="text-accent hover:underline font-medium"
-                >
-                  Sign in
-                </button>
-              </>
-            )}
-          </p>
-        </CardFooter>
-      </form>
-    </Card>
+       <div className="relative">
+         <div className="absolute inset-0 flex items-center">
+           <span className="w-full border-t" />
+         </div>
+         <div className="relative flex justify-center text-xs uppercase">
+           <span className="bg-background px-2 text-muted-foreground">
+             {mode === 'signin' ? 'New to ArchetypeOS?' : 'Already have an account?'}
+           </span>
+         </div>
+       </div>
+ 
+       <Button
+         type="button"
+         variant="outline"
+         className="w-full h-11"
+         onClick={() => onModeChange(mode === 'signin' ? 'signup' : 'signin')}
+       >
+         {mode === 'signin' ? 'Create an account' : 'Sign in instead'}
+       </Button>
+     </form>
   );
 }
