@@ -449,6 +449,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_first_user: { Args: never; Returns: boolean }
       is_supervisor_of: {
         Args: { _supervisor_id: string; _user_id: string }
         Returns: boolean

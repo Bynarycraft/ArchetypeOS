@@ -193,54 +193,64 @@ export default function AdminAnalytics() {
         </div>
 
         {/* Stats Grid */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
-          <Card>
+         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+           <Card className="card-hover">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium">Total Users</CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
+               <div className="p-2 rounded-lg bg-primary/10">
+                 <Users className="h-4 w-4 text-primary" />
+               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{data.totalUsers}</div>
+               <div className="text-3xl font-bold">{data.totalUsers}</div>
             </CardContent>
           </Card>
 
-          <Card>
+           <Card className="card-hover">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium">Active Learners</CardTitle>
-              <Users className="h-4 w-4 text-accent" />
+               <div className="p-2 rounded-lg bg-accent/10">
+                 <Users className="h-4 w-4 text-accent" />
+               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{data.totalLearners}</div>
+               <div className="text-3xl font-bold">{data.totalLearners}</div>
             </CardContent>
           </Card>
 
-          <Card>
+           <Card className="card-hover">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium">Total Hours</CardTitle>
-              <Clock className="h-4 w-4 text-muted-foreground" />
+               <div className="p-2 rounded-lg bg-success/10">
+                 <Clock className="h-4 w-4 text-success" />
+               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{data.totalHours}h</div>
+               <div className="text-3xl font-bold">{data.totalHours}h</div>
             </CardContent>
           </Card>
 
-          <Card>
+           <Card className="card-hover">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium">Courses</CardTitle>
-              <BookOpen className="h-4 w-4 text-muted-foreground" />
+               <div className="p-2 rounded-lg bg-warning/10">
+                 <BookOpen className="h-4 w-4 text-warning" />
+               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{data.totalCourses}</div>
+               <div className="text-3xl font-bold">{data.totalCourses}</div>
             </CardContent>
           </Card>
 
-          <Card>
+           <Card className="card-hover">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium">Avg Score</CardTitle>
-              <Award className="h-4 w-4 text-muted-foreground" />
+               <div className="p-2 rounded-lg bg-destructive/10">
+                 <Award className="h-4 w-4 text-destructive" />
+               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{data.avgScore}%</div>
+               <div className="text-3xl font-bold">{data.avgScore}%</div>
             </CardContent>
           </Card>
         </div>

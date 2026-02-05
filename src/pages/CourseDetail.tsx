@@ -19,6 +19,7 @@ import {
   ExternalLink,
   FileText,
   Video,
+   Link2,
 } from 'lucide-react';
 import { Course, CourseEnrollment, Test } from '@/lib/types';
 
@@ -156,7 +157,7 @@ export default function CourseDetail() {
     switch (type) {
       case 'video': return <Video className="h-5 w-5" />;
       case 'pdf': return <FileText className="h-5 w-5" />;
-      case 'link': return <ExternalLink className="h-5 w-5" />;
+       case 'link': return <Link2 className="h-5 w-5" />;
       default: return <BookOpen className="h-5 w-5" />;
     }
   };
@@ -201,12 +202,12 @@ export default function CourseDetail() {
         <div className="flex flex-col md:flex-row gap-6">
           <div className="flex-1">
             <div className="flex items-start gap-4">
-              <div className="p-4 rounded-xl bg-accent/10">
+               <div className="p-4 rounded-xl bg-gradient-to-br from-accent/20 to-accent/10 border border-accent/20">
                 {getContentIcon(course.content_type)}
               </div>
               <div className="flex-1">
                 <h1 className="text-3xl font-bold tracking-tight">{course.title}</h1>
-                <p className="text-muted-foreground mt-2">{course.description}</p>
+                 <p className="text-muted-foreground mt-2 leading-relaxed">{course.description}</p>
                 <div className="flex flex-wrap items-center gap-3 mt-4">
                   <Badge variant="outline" className="capitalize">
                     {course.difficulty}

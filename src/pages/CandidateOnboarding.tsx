@@ -6,8 +6,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Hexagon, BookOpen, ClipboardCheck, CheckCircle, Clock, AlertCircle } from 'lucide-react';
+ import { Hexagon, BookOpen, ClipboardCheck, CheckCircle, Clock, AlertCircle, Sparkles, LogOut } from 'lucide-react';
 import { Course, Test, TestResult } from '@/lib/types';
+ import { ThemeToggle } from '@/components/ThemeToggle';
 
 type CandidateStatus = 'pending_assignment' | 'assigned' | 'test_in_progress' | 'pending_review' | 'passed' | 'failed';
 
@@ -126,16 +127,24 @@ export default function CandidateOnboarding() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/30">
+     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="p-6 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Hexagon className="h-8 w-8 text-accent" />
-          <span className="text-xl font-bold tracking-tight">ArchetypeOS</span>
+       <header className="sticky top-0 z-50 border-b bg-background/80 backdrop-blur-md">
+         <div className="container max-w-5xl flex items-center justify-between h-16 px-4">
+           <div className="flex items-center gap-3">
+             <div className="p-1.5 rounded-lg bg-gradient-to-br from-primary to-accent">
+               <Hexagon className="h-6 w-6 text-white" />
+             </div>
+             <span className="text-lg font-bold tracking-tight">ArchetypeOS</span>
+           </div>
+           <div className="flex items-center gap-2">
+             <ThemeToggle />
+             <Button variant="ghost" size="sm" onClick={signOut} className="gap-2">
+               <LogOut className="h-4 w-4" />
+               <span className="hidden sm:inline">Sign Out</span>
+             </Button>
+           </div>
         </div>
-        <Button variant="ghost" onClick={signOut}>
-          Sign Out
-        </Button>
       </header>
 
       {/* Main Content */}

@@ -53,17 +53,27 @@ export default function SupervisorGrading() {
       // Fetch pending results from assigned learners
       const { data: resultsData } = await supabase
         .from('test_results')
-        .select(`
-          *,
-          test:tests(*),
-          user:profiles!test_results_user_id_fkey(*)
-        `)
+         .select(`*`)
         .in('user_id', learnerIds)
         .in('status', ['needs_review', 'submitted'])
         .order('submitted_at', { ascending: true });
 
       if (resultsData) {
-        setResults(resultsData as unknown as ResultWithDetails[]);
+         // Manually fetch test and user data for each result
+         const resultsWithDetails = await Promise.all(
+           resultsData.map(async (result) => {
+             const [{ data: testData }, { data: userData }] = await Promise.all([
+               supabase.from('tests').select('*').eq('id', result.test_id).single(),
+               supabase.from('profiles').select('*').eq('id', result.user_id).single()
+             ]);
+             return {
+               ...result,
+               test: testData as unknown as Test,
+               user: userData as Profile,
+             } as ResultWithDetails;
+           })
+         );
+         setResults(resultsWithDetails);
       }
     } catch (error) {
       console.error('Error fetching results:', error);

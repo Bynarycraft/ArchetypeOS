@@ -132,24 +132,28 @@ export default function SupervisorLearners() {
         </div>
 
         {/* Stats Overview */}
-        <div className="grid gap-4 md:grid-cols-4">
-          <Card>
+         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+           <Card className="card-hover">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium">Total Learners</CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
+               <div className="p-2 rounded-lg bg-primary/10">
+                 <Users className="h-4 w-4 text-primary" />
+               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{learners.length}</div>
+               <div className="text-3xl font-bold">{learners.length}</div>
             </CardContent>
           </Card>
 
-          <Card>
+           <Card className="card-hover">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium">Avg. Learning Hours</CardTitle>
-              <Clock className="h-4 w-4 text-muted-foreground" />
+               <div className="p-2 rounded-lg bg-accent/10">
+                 <Clock className="h-4 w-4 text-accent" />
+               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">
+               <div className="text-3xl font-bold">
                 {learners.length > 0
                   ? Math.round(learners.reduce((sum, l) => sum + l.totalHours, 0) / learners.length * 10) / 10
                   : 0}h
@@ -157,13 +161,15 @@ export default function SupervisorLearners() {
             </CardContent>
           </Card>
 
-          <Card>
+           <Card className="card-hover">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium">Avg. Score</CardTitle>
-              <TrendingUp className="h-4 w-4 text-muted-foreground" />
+               <div className="p-2 rounded-lg bg-success/10">
+                 <TrendingUp className="h-4 w-4 text-success" />
+               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">
+               <div className="text-3xl font-bold">
                 {learners.length > 0
                   ? Math.round(learners.reduce((sum, l) => sum + l.avgScore, 0) / learners.length)
                   : 0}%
@@ -171,13 +177,15 @@ export default function SupervisorLearners() {
             </CardContent>
           </Card>
 
-          <Card>
+           <Card className="card-hover">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium">Idle Learners</CardTitle>
-              <AlertTriangle className="h-4 w-4 text-warning" />
+               <div className="p-2 rounded-lg bg-warning/10">
+                 <AlertTriangle className="h-4 w-4 text-warning" />
+               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-warning">{idleLearners.length}</div>
+               <div className="text-3xl font-bold text-warning">{idleLearners.length}</div>
               <p className="text-xs text-muted-foreground">3+ days inactive</p>
             </CardContent>
           </Card>

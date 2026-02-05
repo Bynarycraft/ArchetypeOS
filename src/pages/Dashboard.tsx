@@ -13,6 +13,7 @@ import {
   Flame,
   ArrowRight,
   Play,
+   Sparkles,
 } from 'lucide-react';
 import { CourseEnrollment, LearningSession, DashboardStats } from '@/lib/types';
 import {
@@ -202,49 +203,57 @@ export default function Dashboard() {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <Card>
+         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+           <Card className="card-hover">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium">Total Hours</CardTitle>
-              <Clock className="h-4 w-4 text-muted-foreground" />
+               <div className="p-2 rounded-lg bg-accent/10">
+                 <Clock className="h-4 w-4 text-accent" />
+               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.totalHours}h</div>
+               <div className="text-3xl font-bold">{stats.totalHours}h</div>
               <p className="text-xs text-muted-foreground">Learning time logged</p>
             </CardContent>
           </Card>
 
-          <Card>
+           <Card className="card-hover">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium">Courses Completed</CardTitle>
-              <BookOpen className="h-4 w-4 text-muted-foreground" />
+               <div className="p-2 rounded-lg bg-success/10">
+                 <BookOpen className="h-4 w-4 text-success" />
+               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.coursesCompleted}</div>
+               <div className="text-3xl font-bold">{stats.coursesCompleted}</div>
               <p className="text-xs text-muted-foreground">
                 {recentEnrollments.length} total enrolled
               </p>
             </CardContent>
           </Card>
 
-          <Card>
+           <Card className="card-hover">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium">Average Score</CardTitle>
-              <Trophy className="h-4 w-4 text-muted-foreground" />
+               <div className="p-2 rounded-lg bg-warning/10">
+                 <Trophy className="h-4 w-4 text-warning" />
+               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.averageScore}%</div>
+               <div className="text-3xl font-bold">{stats.averageScore}%</div>
               <p className="text-xs text-muted-foreground">Across all tests</p>
             </CardContent>
           </Card>
 
-          <Card>
+           <Card className="card-hover">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium">Current Streak</CardTitle>
-              <Flame className="h-4 w-4 text-warning" />
+               <div className="p-2 rounded-lg bg-destructive/10">
+                 <Flame className="h-4 w-4 text-destructive" />
+               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.currentStreak} days</div>
+               <div className="text-3xl font-bold">{stats.currentStreak} days</div>
               <p className="text-xs text-muted-foreground">Keep it going!</p>
             </CardContent>
           </Card>
@@ -253,9 +262,12 @@ export default function Dashboard() {
         {/* Charts and Courses */}
         <div className="grid gap-6 lg:grid-cols-2">
           {/* Weekly Activity Chart */}
-          <Card className="col-span-1">
+           <Card>
             <CardHeader>
-              <CardTitle>Weekly Activity</CardTitle>
+               <CardTitle className="flex items-center gap-2">
+                 <Sparkles className="h-5 w-5 text-accent" />
+                 Weekly Activity
+               </CardTitle>
               <CardDescription>Hours learned per day</CardDescription>
             </CardHeader>
             <CardContent>
@@ -286,13 +298,13 @@ export default function Dashboard() {
           </Card>
 
           {/* Recent Courses */}
-          <Card className="col-span-1">
+           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
               <div>
                 <CardTitle>Recent Courses</CardTitle>
                 <CardDescription>Continue where you left off</CardDescription>
               </div>
-              <Button variant="ghost" size="sm" asChild>
+               <Button variant="outline" size="sm" asChild>
                 <Link to="/courses">
                   View all <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
