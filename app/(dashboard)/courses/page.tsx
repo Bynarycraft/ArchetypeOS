@@ -6,9 +6,16 @@ import { BookOpen, Clock } from "lucide-react";
 import Link from "next/link";
 
 export default async function CoursesPage() {
-    const courses = await prisma.course.findMany({
-        include: { roadmap: true }
-    });
+    let courses = [] as any[];
+    try {
+        courses = await prisma.course.findMany({
+            include: { roadmap: true }
+        });
+    } catch (err) {
+        // DB unavailable — render fallback empty list and log the error
+        // eslint-disable-next-line no-console
+        console.error('[courses] prisma error:', err);
+    }
 
     return (
         <div className="space-y-12 animate-in fade-in slide-in-from-bottom-8 duration-1000">

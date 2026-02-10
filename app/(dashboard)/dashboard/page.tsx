@@ -24,43 +24,56 @@ export default async function DashboardPage() {
         redirect("/auth/signin");
     }
 
-    const user = await prisma.user.findUnique({
-        where: { id: session.user.id },
-        include: {
-            enrollments: {
-                include: {
-                    course: true
-                }
-            },
-            sessions: {
-                orderBy: { startTime: 'desc' },
-                take: 5
-            },
-            testResults: {
-                include: {
-                    test: {
-                        include: {
-                            course: true
-                        }
+    let user: any = null;
+    try {
+        user = await prisma.user.findUnique({
+            where: { id: session.user.id },
+            include: {
+                courseEnrollments: {
+                    include: {
+                        course: true
                     }
                 },
-                orderBy: { submittedAt: 'desc' },
-                take: 5
+                dailyLearningSessions: {
+                    orderBy: { startTime: 'desc' },
+                    take: 5
+                },
+                testResults: {
+                    include: {
+                        test: {
+                            include: {
+                                course: true
+                            }
+                        }
+                    },
+                    orderBy: { submittedAt: 'desc' },
+                    take: 5
+                }
             }
-        }
-    });
+        });
+    } catch (err) {
+        // If DB errors occur, show a graceful fallback UI instead of crashing
+        // eslint-disable-next-line no-console
+        console.error('[dashboard] prisma error:', err);
+        return (
+            <div className="p-12 text-center">
+                <h2 className="text-2xl font-bold">Data currently unavailable</h2>
+                <p className="mt-4 text-muted-foreground">We couldn't load your dashboard data right now — please try again later.</p>
+            </div>
+        );
+    }
 
     if (!user) return <div>User not found</div>;
 
     const archetype = user.archetype;
 
     // Stats calculation
-    const completedCourses = user.enrollments.filter(e => e.status === 'completed').length;
+    const completedCourses = user.courseEnrollments.filter(e => e.status === 'completed').length;
     const activeRoadmaps = await prisma.roadmap.count({
         where: { archetype: archetype || 'NONE' }
     });
 
-    const totalLearningMinutes = user.sessions.reduce((acc, s) => acc + (s.durationMinutes || 0), 0);
+    const totalLearningMinutes = user.dailyLearningSessions.reduce((acc, s) => acc + (s.durationMinutes || 0), 0);
     const totalLearningHours = (totalLearningMinutes / 60).toFixed(1);
 
     return (
@@ -93,7 +106,7 @@ export default async function DashboardPage() {
                 {[
                     { label: "Archetype", value: archetype, icon: UserCheck, desc: "Your DNA profile", color: "from-blue-500/20 to-indigo-500/20" },
                     { label: "Learning Hours", value: `${totalLearningHours}h`, icon: Clock, desc: "Total time logged", color: "from-amber-500/20 to-orange-500/20" },
-                    { label: "Courses Done", value: completedCourses, icon: CheckCircle2, desc: `Out of ${user.enrollments.length} taken`, color: "from-emerald-500/20 to-teal-500/20" },
+                    { label: "Courses Done", value: completedCourses, icon: CheckCircle2, desc: `Out of ${user.courseEnrollments.length} taken`, color: "from-emerald-500/20 to-teal-500/20" },
                     { label: "Active Roadmaps", value: activeRoadmaps, icon: GraduationCap, desc: "Paths unlocked", color: "from-fuchsia-500/20 to-purple-500/20" },
                 ].map((stat, i) => (
                     <Card key={i} className="border-none bg-card/40 backdrop-blur-md shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group overflow-hidden">

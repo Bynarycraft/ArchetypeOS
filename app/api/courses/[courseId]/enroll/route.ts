@@ -39,8 +39,8 @@ export async function POST(
             create: {
                 userId: session.user.id,
                 courseId: course.id,
-                status: "started",
-                progressPercent: 0,
+                status: "in_progress",
+                progress: 0,
             },
         });
 

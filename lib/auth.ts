@@ -1,6 +1,6 @@
 import { NextAuthOptions } from "next-auth";
-import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import CredentialsProvider from "next-auth/providers/credentials";
+import bcrypt from "bcryptjs";
 import { prisma } from "./prisma";
 
 // Extend the built-in session types
@@ -34,13 +34,11 @@ declare module "next-auth/jwt" {
 }
 
 export const authOptions: NextAuthOptions = {
-    adapter: PrismaAdapter(prisma),
     session: {
         strategy: "jwt",
     },
     pages: {
         signIn: "/auth/signin",
-        // error: '/auth/error',
     },
     providers: [
         CredentialsProvider({
@@ -50,52 +48,71 @@ export const authOptions: NextAuthOptions = {
                 password: { label: "Password", type: "password" }
             },
             async authorize(credentials) {
+                console.log("[authorize] Called with credentials:", { email: credentials?.email });
+                
                 if (!credentials?.email || !credentials?.password) {
+                    console.log("[authorize] Missing email or password");
                     return null;
                 }
 
-                const user = await prisma.user.findUnique({
-                    where: { email: credentials.email }
-                });
+                try {
+                    const user = await prisma.user.findUnique({
+                        where: { email: credentials.email }
+                    });
 
-                if (!user) {
+                    if (!user) {
+                        console.log("[authorize] User not found:", credentials.email);
+                        return null;
+                    }
+
+                    if (!user.password) {
+                        console.log("[authorize] User has no password");
+                        return null;
+                    }
+
+                    // Compare password with bcrypt
+                    const isValid = await bcrypt.compare(credentials.password, user.password);
+                    console.log("[authorize] Password valid:", isValid);
+
+                    if (!isValid) {
+                        console.log("[authorize] Invalid password");
+                        return null;
+                    }
+
+                    console.log("[authorize] Auth successful for:", user.email);
+                    return {
+                        id: user.id,
+                        email: user.email,
+                        name: user.name,
+                        role: user.role,
+                        archetype: user.archetype,
+                    };
+                } catch (error) {
+                    console.error("[authorize] Error during auth:", error);
                     return null;
                 }
-
-                // For MVP, simplistic password check (In production, use bcrypt)
-                // const isValid = await bcrypt.compare(credentials.password, user.password);
-                const isValid = credentials.password === user.password; // TEMPORARY for MVP
-
-                if (!isValid) {
-                    return null;
-                }
-
-                return {
-                    id: user.id,
-                    email: user.email,
-                    name: user.name,
-                    role: user.role,
-                    archetype: user.archetype,
-                };
             }
         }),
-        // EmailProvider would go here (requires SMTP)
     ],
     callbacks: {
-        async jwt({ token, user }) {
+        async jwt({ token, user, account }) {
+            console.log("[jwt] Called with user:", user ? { id: user.id, email: user.email } : "none");
             if (user) {
-                token.id = user.id;
-                token.role = user.role;
-                token.archetype = user.archetype;
+                token.id = user.id as string;
+                token.role = user.role as string;
+                token.archetype = user.archetype as string;
             }
+            console.log("[jwt] Returning token:", { id: token.id });
             return token;
         },
         async session({ session, token }) {
-            if (token) {
+            console.log("[session] Called with token:", { id: token.id });
+            if (session && session.user) {
                 session.user.id = token.id as string;
                 session.user.role = token.role as string;
                 session.user.archetype = token.archetype as string;
             }
+            console.log("[session] Returning session:", { user: session?.user });
             return session;
         }
     }

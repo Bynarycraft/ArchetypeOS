@@ -14,14 +14,26 @@ export default async function ProfilePage() {
         redirect("/auth/signin");
     }
 
-    const user = await prisma.user.findUnique({
-        where: { id: session.user.id },
-        include: {
-            enrollments: { include: { course: true } },
-            sessions: true,
-            testResults: true,
-        }
-    });
+    let user: any = null;
+    try {
+        user = await prisma.user.findUnique({
+            where: { id: session.user.id },
+            include: {
+                courseEnrollments: { include: { course: true } },
+                dailyLearningSessions: true,
+                testResults: true,
+            }
+        });
+    } catch (err) {
+        // eslint-disable-next-line no-console
+        console.error('[profile] prisma error:', err);
+        return (
+            <div className="p-12 text-center">
+                <h2 className="text-2xl font-bold">Data currently unavailable</h2>
+                <p className="mt-4 text-muted-foreground">We couldn't load your profile data right now — please try again later.</p>
+            </div>
+        );
+    }
 
     if (!user) return <div>User not found</div>;
 
@@ -130,7 +142,7 @@ export default async function ProfilePage() {
                             <CardContent className="p-8">
                                 <div className="flex items-center justify-between">
                                     <div className="space-y-1">
-                                        <div className="text-4xl font-black text-gradient">{user.enrollments.length}</div>
+                                        <div className="text-4xl font-black text-gradient">{user.courseEnrollments.length}</div>
                                         <p className="text-[10px] text-muted-foreground font-black uppercase tracking-widest">Active Enrollments</p>
                                     </div>
                                     <div className="space-y-1 text-right">
@@ -155,7 +167,7 @@ export default async function ProfilePage() {
                                     </div>
                                     <div>
                                         <div className="text-4xl font-black text-gradient">
-                                            {(user.sessions.reduce((acc, s) => acc + (s.durationMinutes || 0), 0) / 60).toFixed(1)}h
+                                            {(user.dailyLearningSessions.reduce((acc, s) => acc + (s.durationMinutes || 0), 0) / 60).toFixed(1)}h
                                         </div>
                                         <p className="text-[10px] text-muted-foreground font-black uppercase tracking-widest mt-1">Total System Engagement</p>
                                     </div>

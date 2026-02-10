@@ -16,12 +16,23 @@ export async function GET(_req: Request) {
                 roadmap: true,
                 tests: {
                     select: { id: true, title: true, type: true }
+                },
+                _count: {
+                    select: { courseEnrollments: true }
                 }
             },
             orderBy: { createdAt: 'desc' }
         });
 
-        return NextResponse.json(courses);
+        // Transform the response to use enrollments instead of courseEnrollments
+        const transformedCourses = courses.map(course => ({
+            ...course,
+            _count: {
+                enrollments: course._count.courseEnrollments
+            }
+        }));
+
+        return NextResponse.json(transformedCourses);
     } catch (_error) {
         return NextResponse.json({ error: "Failed to fetch courses" }, { status: 500 });
     }

@@ -16,7 +16,7 @@ export default async function RoadmapPage() {
     const user = await prisma.user.findUnique({
         where: { id: session.user.id },
         include: {
-            enrollments: {
+            courseEnrollments: {
                 include: {
                     course: true
                 }
@@ -64,7 +64,7 @@ export default async function RoadmapPage() {
 
                         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                             {roadmap.courses.map((course, idx) => {
-                                const enrollment = user.enrollments.find(e => e.courseId === course.id);
+                                const enrollment = user.courseEnrollments.find(e => e.courseId === course.id);
                                 const isCompleted = enrollment?.status === 'completed';
                                 const isEnrolled = !!enrollment;
 

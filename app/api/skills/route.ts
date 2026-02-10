@@ -14,7 +14,7 @@ export async function GET(_req: Request) {
         const userData = await prisma.user.findUnique({
             where: { id: session.user.id },
             include: {
-                enrollments: {
+                courseEnrollments: {
                     where: { status: "completed" },
                     include: { course: { include: { roadmap: true } } }
                 },
@@ -38,7 +38,7 @@ export async function GET(_req: Request) {
         });
 
         // Handle course completions that might not have tests linked or to weight them
-        userData.enrollments.forEach(enroll => {
+        userData.courseEnrollments.forEach(enroll => {
             const category = enroll.course.roadmap?.name || "General";
             if (!skillMap[category]) skillMap[category] = { total: 0, count: 0 };
             // A completion alone gives a baseline (e.g., 3.0 out of 5)
