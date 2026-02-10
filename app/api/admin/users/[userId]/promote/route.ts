@@ -11,17 +11,17 @@ export async function PUT(
   try {
     const session = await getServerSession(authOptions);
 
-    if (!session || session.user.role !== "admin") {
+    if (!session || session.user.role !== "ADMIN") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 
     const { userId } = params;
     const { newRole, archetype } = await request.json();
 
-    const updateData: any = {
-      role: newRole || "learner",
+    const updateData: Partial<{ role: string; archetype: string }> = {
+      role: newRole || "LEARNER",
     };
-    
+
     if (archetype) {
       updateData.archetype = archetype;
     }
@@ -34,9 +34,6 @@ export async function PUT(
     return NextResponse.json(user);
   } catch (error) {
     console.error("Promote user error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
