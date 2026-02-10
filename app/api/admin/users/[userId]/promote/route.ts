@@ -6,7 +6,7 @@ import { prisma } from "@/lib/prisma";
 // PUT promote user from candidate to learner (admin only)
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { userId: string } }
+  { params }: { params: { userId: string } } // no Promise here
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -18,7 +18,7 @@ export async function PUT(
     const { userId } = params;
     const { newRole, archetype } = await request.json();
 
-    const updateData: Partial<{ role: string; archetype: string }> = {
+    const updateData: any = {
       role: newRole || "LEARNER",
     };
 
@@ -34,6 +34,9 @@ export async function PUT(
     return NextResponse.json(user);
   } catch (error) {
     console.error("Promote user error:", error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
   }
 }
