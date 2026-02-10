@@ -30,13 +30,17 @@ export default function SignInPage() {
                 redirect: false,
             });
 
+            console.log("[signin] Result:", result);
+
             if (result?.ok) {
                 router.push("/dashboard");
+            } else if (result?.error === "CredentialsSignin") {
+                setError("Invalid email or password. Please check your credentials.");
             } else {
-                setError(result?.error || "Sign in failed. Please check your credentials.");
+                setError(result?.error || "Sign in failed. Please try again.");
             }
         } catch (error) {
-            console.error(error);
+            console.error("[signin] Error:", error);
             setError("An error occurred during sign in. Please try again.");
         } finally {
             setLoading(false);
