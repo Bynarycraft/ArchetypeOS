@@ -134,19 +134,20 @@ export default async function AdminAnalyticsPage() {
                         <div className="space-y-4">
                             {usersByArchetype.map((item) => {
                                 const percentage = ((item._count / totalUsers) * 100).toFixed(1);
-                                const color = {
+                                const colorMap: Record<string, string> = {
                                     MAKER: 'bg-blue-500',
                                     ARCHITECT: 'bg-purple-500',
                                     REFINER: 'bg-green-500',
                                     CATALYST: 'bg-orange-500',
                                     CRAFTSMAN: 'bg-amber-600',
                                     NONE: 'bg-gray-400'
-                                }[item.archetype] || 'bg-gray-400';
+                                };
+                                const color = (item.archetype && colorMap[item.archetype]) || 'bg-gray-400';
 
                                 return (
-                                    <div key={item.archetype} className="space-y-2">
+                                    <div key={item.archetype || 'unknown'} className="space-y-2">
                                         <div className="flex items-center justify-between text-sm">
-                                            <span className="font-medium">{item.archetype}</span>
+                                            <span className="font-medium">{item.archetype || 'Unknown'}</span>
                                             <span className="text-muted-foreground">{item._count} ({percentage}%)</span>
                                         </div>
                                         <div className="h-2 bg-secondary rounded-full overflow-hidden">

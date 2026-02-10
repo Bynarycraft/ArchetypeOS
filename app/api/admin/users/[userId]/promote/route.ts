@@ -1,42 +1,36 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { prisma } from "@/lib/prisma";
 
-// PUT promote user from candidate to learner (admin only)
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: { userId: string } } // no Promise here
+export async function PATCH(
+  req: Request,
+  context: { params: Promise<{ userId: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
-
-    if (!session || session.user.role !== "ADMIN") {
+    if (!session || session.user.role !== "admin") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 
-    const { userId } = params;
-    const { newRole, archetype } = await request.json();
+    // Properly await params (required in Next.js 15+)
+    const { userId } = await context.params;
 
-    const updateData: any = {
-      role: newRole || "LEARNER",
-    };
+    const body = await req.json();
+    const { role, archetype } = body;
 
-    if (archetype) {
-      updateData.archetype = archetype;
-    }
+    const updateData: { role?: string; archetype?: string } = {};
+    if (role) updateData.role = role;
+    if (archetype) updateData.archetype = archetype;
 
-    const user = await prisma.user.update({
+    const updatedUser = await prisma.user.update({
       where: { id: userId },
       data: updateData,
     });
 
-    return NextResponse.json(user);
+    return NextResponse.json(updatedUser);
   } catch (error) {
-    console.error("Promote user error:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    console.error("Update user error:", error);
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

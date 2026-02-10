@@ -68,12 +68,12 @@ export default async function DashboardPage() {
     const archetype = user.archetype;
 
     // Stats calculation
-    const completedCourses = user.courseEnrollments.filter(e => e.status === 'completed').length;
+    const completedCourses = user.courseEnrollments.filter((e: typeof user.courseEnrollments[number]) => e.status === 'completed').length;
     const activeRoadmaps = await prisma.roadmap.count({
         where: { archetype: archetype || 'NONE' }
     });
 
-    const totalLearningMinutes = user.dailyLearningSessions.reduce((acc, s) => acc + (s.durationMinutes || 0), 0);
+    const totalLearningMinutes = user.dailyLearningSessions.reduce((acc: number, s: typeof user.dailyLearningSessions[number]) => acc + (s.durationMinutes || 0), 0);
     const totalLearningHours = (totalLearningMinutes / 60).toFixed(1);
 
     return (
@@ -142,7 +142,7 @@ export default async function DashboardPage() {
                     <CardContent className="p-0">
                         <div className="divide-y divide-border/10">
                             {user.testResults.length > 0 ? (
-                                user.testResults.map((result) => (
+                                user.testResults.map((result: typeof user.testResults[number]) => (
                                     <Link
                                         href={`/courses/${result.test.course.id}`}
                                         key={result.id}

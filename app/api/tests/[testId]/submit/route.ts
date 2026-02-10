@@ -69,13 +69,13 @@ export async function POST(
                 },
                 data: {
                     status: "completed",
-                    progressPercent: 100,
+                    progress: 100,
                     completedAt: new Date()
                 }
             });
 
-            // 4. Update role to LEARNER if CANDIDATE passed
-            if (session.user.role === "CANDIDATE") {
+            // 4. Update role to learner if candidate passed
+            if (session.user.role === "candidate") {
                 await prisma.user.update({
                     where: { id: session.user.id },
                     data: { role: "LEARNER" }

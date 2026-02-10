@@ -2,26 +2,25 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { Role, Archetype } from "@prisma/client";
 
 export async function PATCH(
   req: Request,
-  { params }: { params: { userId: string } }
+  context: { params: Promise<{ userId: string }> }
 ) {
   const session = await getServerSession(authOptions);
 
-  if (!session || session.user.role !== "ADMIN") {
+  if (!session || session.user.role !== "admin") {
     return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
   }
 
-  const { userId } = params;
+  const { userId } = await context.params;
 
   try {
     const body = await req.json();
     const { role, archetype } = body;
 
-    const validRoles = Object.values(Role);
-    const validArchetypes = Object.values(Archetype);
+    const validRoles = ['candidate', 'learner', 'supervisor', 'admin'];
+    const validArchetypes = ['MAKER', 'ARCHITECT', 'REFINER', 'CATALYST', 'CRAFTSMAN', 'NONE'];
 
     if (role && !validRoles.includes(role)) {
       return NextResponse.json({ error: "Invalid role" }, { status: 400 });

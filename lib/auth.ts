@@ -85,7 +85,7 @@ export const authOptions: NextAuthOptions = {
                         email: user.email,
                         name: user.name,
                         role: user.role,
-                        archetype: user.archetype,
+                        archetype: user.archetype || undefined,
                     };
                 } catch (error) {
                     console.error("[authorize] Error during auth:", error);

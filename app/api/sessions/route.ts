@@ -21,7 +21,7 @@ export async function POST(req: Request) {
                 endTime: new Date(),
                 reflection: reflection ? {
                     create: {
-                        content: reflection,
+                        text: reflection,
                         userId: session.user.id
                     }
                 } : undefined

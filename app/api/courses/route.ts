@@ -17,9 +17,7 @@ export async function GET(_req: Request) {
                 tests: {
                     select: { id: true, title: true, type: true }
                 },
-                _count: {
-                    select: { courseEnrollments: true }
-                }
+                _count: true
             },
             orderBy: { createdAt: 'desc' }
         });
@@ -28,7 +26,7 @@ export async function GET(_req: Request) {
         const transformedCourses = courses.map(course => ({
             ...course,
             _count: {
-                enrollments: course._count.courseEnrollments
+                enrollments: course._count.enrollments
             }
         }));
 

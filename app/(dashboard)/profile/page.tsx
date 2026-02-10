@@ -167,7 +167,7 @@ export default async function ProfilePage() {
                                     </div>
                                     <div>
                                         <div className="text-4xl font-black text-gradient">
-                                            {(user.dailyLearningSessions.reduce((acc, s) => acc + (s.durationMinutes || 0), 0) / 60).toFixed(1)}h
+                                            {(user.dailyLearningSessions.reduce((acc: number, s: typeof user.dailyLearningSessions[number]) => acc + (s.durationMinutes || 0), 0) / 60).toFixed(1)}h
                                         </div>
                                         <p className="text-[10px] text-muted-foreground font-black uppercase tracking-widest mt-1">Total System Engagement</p>
                                     </div>

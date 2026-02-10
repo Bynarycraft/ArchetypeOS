@@ -6,7 +6,7 @@ import { prisma } from "@/lib/prisma";
 // PUT end learning session and add reflection
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { sessionId: string } }
+  context: { params: Promise<{ sessionId: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -15,7 +15,7 @@ export async function PUT(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { sessionId } = params;
+    const { sessionId } = await context.params;
     const { reflection } = await request.json();
 
     // End session
