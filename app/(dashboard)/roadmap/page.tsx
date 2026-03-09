@@ -74,7 +74,7 @@ export default async function RoadmapPage() {
                                             <CardContent className="p-6 space-y-4">
                                                 <div className="flex justify-between items-start">
                                                     <Badge variant="secondary">Step {idx + 1}</Badge>
-                                                    {isCompleted && <Badge className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">Completed</Badge>}
+                                                    {isCompleted && <Badge variant="default">Completed</Badge>}
                                                 </div>
                                                 <h3 className="text-lg font-semibold">{course.title}</h3>
                                                 <div className="h-2 w-full bg-secondary rounded-full overflow-hidden">
