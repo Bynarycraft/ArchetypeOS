@@ -23,7 +23,7 @@ export async function GET(req: Request) {
     });
 
     const idleResults = await Promise.all(
-      learners.map(async (learner) => {
+      learners.map(async (learner: { id: string; name: string | null; email: string | null; role: string }) => {
         const lastSession = await prisma.learningSession.findFirst({
           where: { userId: learner.id },
           orderBy: { startTime: "desc" },

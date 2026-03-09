@@ -33,7 +33,7 @@ export async function GET() {
       },
     });
 
-    const notifications = logs.map((log) => {
+    const notifications = logs.map((log: typeof logs[number]) => {
       let details: NotificationDetails | null = null;
       if (log.details) {
         try {
@@ -90,13 +90,13 @@ export async function POST(req: Request) {
           where: { supervisorId: session.user.id },
           select: { id: true },
         });
-        targetIds = learners.map((learner) => learner.id);
+        targetIds = learners.map((l: { id: string }) => l.id);
       } else {
         const learners = await prisma.user.findMany({
           where: { role: { in: ["candidate", "learner"] } },
           select: { id: true },
         });
-        targetIds = learners.map((learner) => learner.id);
+        targetIds = learners.map((l: { id: string }) => l.id);
       }
     } else if (receiverId) {
       targetIds = [receiverId];
@@ -121,7 +121,7 @@ export async function POST(req: Request) {
     }
 
     const result = await prisma.auditLog.createMany({
-      data: targetIds.map((targetId) => ({
+      data: targetIds.map((targetId: string) => ({
         userId: session.user.id,
         action: "notification",
         targetType: "user",

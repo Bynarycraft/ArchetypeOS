@@ -13,10 +13,8 @@ export default async function AdminAnalyticsPage() {
         redirect("/dashboard");
     }
 
-    // eslint-disable-next-line react-hooks/purity
     const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
 
-    // Fetch analytics data
     const totalUsers = await prisma.user.count();
     const totalCourses = await prisma.course.count();
     const totalTests = await prisma.test.count();
@@ -41,13 +39,11 @@ export default async function AdminAnalyticsPage() {
 
     return (
         <div className="space-y-8">
-            {/* Header */}
             <div>
                 <h1 className="text-4xl font-bold tracking-tight">Company Analytics</h1>
                 <p className="text-muted-foreground mt-2">Overview of platform metrics and user engagement</p>
             </div>
 
-            {/* Key Metrics Grid */}
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
                 <Card className="hover:shadow-lg transition-shadow">
                     <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -94,9 +90,7 @@ export default async function AdminAnalyticsPage() {
                 </Card>
             </div>
 
-            {/* Distribution Charts */}
             <div className="grid gap-6 md:grid-cols-2">
-                {/* Users by Role */}
                 <Card>
                     <CardHeader>
                         <CardTitle>Users by Role</CardTitle>
@@ -104,12 +98,12 @@ export default async function AdminAnalyticsPage() {
                     </CardHeader>
                     <CardContent>
                         <div className="space-y-4">
-                            {usersByRole.map((item) => {
+                            {usersByRole.map((item: { role: string; _count: number }) => {
                                 const percentage = ((item._count / totalUsers) * 100).toFixed(1);
                                 return (
                                     <div key={item.role} className="space-y-2">
                                         <div className="flex items-center justify-between text-sm">
-                                            <span className="font-medium">{item.role}</span>
+                                            <span className="font-medium capitalize">{item.role}</span>
                                             <span className="text-muted-foreground">{item._count} ({percentage}%)</span>
                                         </div>
                                         <div className="h-2 bg-secondary rounded-full overflow-hidden">
@@ -125,7 +119,6 @@ export default async function AdminAnalyticsPage() {
                     </CardContent>
                 </Card>
 
-                {/* Users by Archetype */}
                 <Card>
                     <CardHeader>
                         <CardTitle>Users by Archetype</CardTitle>
@@ -133,22 +126,25 @@ export default async function AdminAnalyticsPage() {
                     </CardHeader>
                     <CardContent>
                         <div className="space-y-4">
-                            {usersByArchetype.map((item) => {
+                            {usersByArchetype.map((item: { archetype: string | null; _count: number }) => {
                                 const percentage = ((item._count / totalUsers) * 100).toFixed(1);
                                 const colorMap: Record<string, string> = {
                                     MAKER: 'bg-blue-500',
+                                    Maker: 'bg-blue-500',
                                     ARCHITECT: 'bg-purple-500',
+                                    Architect: 'bg-purple-500',
                                     REFINER: 'bg-green-500',
                                     CATALYST: 'bg-orange-500',
+                                    Catalyst: 'bg-orange-500',
                                     CRAFTSMAN: 'bg-amber-600',
-                                    NONE: 'bg-gray-400'
+                                    NONE: 'bg-muted-foreground'
                                 };
-                                const color = (item.archetype && colorMap[item.archetype]) || 'bg-gray-400';
+                                const color = (item.archetype && colorMap[item.archetype]) || 'bg-muted-foreground';
 
                                 return (
                                     <div key={item.archetype || 'unknown'} className="space-y-2">
                                         <div className="flex items-center justify-between text-sm">
-                                            <span className="font-medium">{item.archetype || 'Unknown'}</span>
+                                            <span className="font-medium">{item.archetype || 'Unassigned'}</span>
                                             <span className="text-muted-foreground">{item._count} ({percentage}%)</span>
                                         </div>
                                         <div className="h-2 bg-secondary rounded-full overflow-hidden">

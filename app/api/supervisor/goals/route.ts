@@ -30,14 +30,14 @@ export async function GET() {
     const logs = await prisma.auditLog.findMany({
       where: {
         action: "weekly_goal",
-        targetId: { in: learners.map((learner) => learner.id) },
+        targetId: { in: learners.map((l: { id: string }) => l.id) },
       },
       orderBy: { timestamp: "desc" },
     });
 
     const latestByUser: Record<string, number> = {};
 
-    logs.forEach((log) => {
+    logs.forEach((log: { targetId: string | null; details: string | null }) => {
       if (!log.targetId || latestByUser[log.targetId]) return;
       if (!log.details) return;
       try {
@@ -50,7 +50,7 @@ export async function GET() {
       }
     });
 
-    const payload = learners.map((learner) => ({
+    const payload = learners.map((learner: { id: string; name: string | null; email: string | null }) => ({
       ...learner,
       goalMinutes: latestByUser[learner.id] || 0,
     }));

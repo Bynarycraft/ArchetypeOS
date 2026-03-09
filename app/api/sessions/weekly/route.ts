@@ -34,7 +34,7 @@ export async function GET() {
       };
     });
 
-    sessions.forEach((sessionItem) => {
+    sessions.forEach((sessionItem: { startTime: Date; durationMinutes: number | null }) => {
       const dayIndex = Math.floor(
         (sessionItem.startTime.getTime() - startOfWeek.getTime()) / (1000 * 60 * 60 * 24)
       );
@@ -43,7 +43,7 @@ export async function GET() {
       }
     });
 
-    const totalMinutes = days.reduce((acc, item) => acc + item.minutes, 0);
+    const totalMinutes = days.reduce((acc: number, item) => acc + item.minutes, 0);
     const goalMinutes = 360 * 7;
 
     return NextResponse.json({

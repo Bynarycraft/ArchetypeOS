@@ -31,10 +31,19 @@ export async function GET() {
       "learningMinutes",
     ];
 
-    const rows = users.map((user) => {
+    const rows = users.map((user: {
+      id: string;
+      name: string | null;
+      email: string | null;
+      role: string;
+      archetype: string | null;
+      createdAt: Date;
+      courseEnrollments: Array<{ status: string }>;
+      dailyLearningSessions: Array<{ durationMinutes: number | null }>;
+    }) => {
       const coursesCompleted = user.courseEnrollments.filter((enroll) => enroll.status === "completed").length;
       const learningMinutes = user.dailyLearningSessions.reduce(
-        (acc, sessionItem) => acc + (sessionItem.durationMinutes || 0),
+        (acc: number, sessionItem) => acc + (sessionItem.durationMinutes || 0),
         0
       );
 
@@ -50,7 +59,7 @@ export async function GET() {
       ];
     });
 
-    const csv = [header.join(","), ...rows.map((row) => row.map((value) => `"${String(value).replace(/"/g, '""')}"`).join(","))].join("\n");
+    const csv = [header.join(","), ...rows.map((row: string[]) => row.map((value: string) => `"${String(value).replace(/"/g, '""')}"`).join(","))].join("\n");
 
     return new NextResponse(csv, {
       headers: {
