@@ -17,20 +17,14 @@ export async function GET(_req: Request) {
                 tests: {
                     select: { id: true, title: true, type: true }
                 },
-                _count: true
+                _count: {
+                    select: { enrollments: true }
+                }
             },
             orderBy: { createdAt: 'desc' }
         });
 
-        // Transform the response to use enrollments instead of courseEnrollments
-        const transformedCourses = courses.map(course => ({
-            ...course,
-            _count: {
-                enrollments: course._count.enrollments
-            }
-        }));
-
-        return NextResponse.json(transformedCourses);
+        return NextResponse.json(courses);
     } catch (_error) {
         return NextResponse.json({ error: "Failed to fetch courses" }, { status: 500 });
     }
@@ -40,29 +34,26 @@ export async function POST(req: Request) {
     const session = await getServerSession(authOptions);
     const role = session?.user?.role?.toLowerCase();
 
-    // Only Admin/Supervisor can create courses
     if (!session || (role !== "admin" && role !== "supervisor")) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 
     try {
         const body = await req.json();
-        // const archetype = session.user.archetype;
         const { title, description, difficulty, contentUrl, duration } = body;
 
-        if (!title || !contentUrl) {
-            return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+        if (!title) {
+            return NextResponse.json({ error: "Title is required" }, { status: 400 });
         }
 
         const course = await prisma.course.create({
             data: {
                 title,
                 description,
-                difficulty,
+                difficulty: difficulty || "beginner",
                 contentType: "video",
-                contentUrl,
-                duration,
-                // Ideally link to a roadmap here via roadmapId if provided
+                contentUrl: contentUrl || null,
+                duration: duration || null,
             }
         });
 

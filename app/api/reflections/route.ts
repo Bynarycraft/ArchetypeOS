@@ -3,7 +3,6 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
-// GET reflections for user
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
@@ -46,7 +45,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(reflections);
     }
 
-    const reflectionIds = reflections.map((reflection) => reflection.id);
+    const reflectionIds = reflections.map((reflection: { id: string }) => reflection.id);
     const comments = await prisma.feedback.findMany({
       where: {
         threadId: { in: reflectionIds },
@@ -58,7 +57,8 @@ export async function GET(request: NextRequest) {
       orderBy: { createdAt: "asc" },
     });
 
-    const commentsByReflection = comments.reduce<Record<string, typeof comments>>((acc, comment) => {
+    type CommentRow = typeof comments[number];
+    const commentsByReflection = comments.reduce<Record<string, CommentRow[]>>((acc, comment) => {
       const key = comment.threadId || "";
       if (!key) return acc;
       if (!acc[key]) acc[key] = [];
@@ -66,7 +66,7 @@ export async function GET(request: NextRequest) {
       return acc;
     }, {});
 
-    const payload = reflections.map((reflection) => ({
+    const payload = reflections.map((reflection: typeof reflections[number]) => ({
       ...reflection,
       comments: commentsByReflection[reflection.id] || [],
     }));
@@ -80,7 +80,6 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST create reflection
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);

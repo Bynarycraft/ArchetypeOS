@@ -13,7 +13,6 @@ export async function POST(req: Request) {
     try {
         const { durationMinutes, reflection } = await req.json();
 
-        // Create a new learning session
         const learningSession = await prisma.learningSession.create({
             data: {
                 userId: session.user.id,
@@ -55,11 +54,11 @@ export async function GET(_req: Request) {
             }
         });
 
-        const totalMinutes = sessions.reduce((acc, s) => acc + (s.durationMinutes || 0), 0);
+        const totalMinutes = sessions.reduce((acc: number, s: { durationMinutes: number | null }) => acc + (s.durationMinutes || 0), 0);
 
         return NextResponse.json({
             todayMinutes: totalMinutes,
-            goalMinutes: 360, // 6 hours
+            goalMinutes: 360,
             sessionsCount: sessions.length
         });
     } catch (error) {

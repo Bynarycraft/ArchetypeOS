@@ -17,7 +17,7 @@ export async function GET(req: Request) {
     const mode = url.searchParams.get("mode") || "and";
     const skills = skillsParam
       .split(",")
-      .map((item) => item.trim())
+      .map((item: string) => item.trim())
       .filter(Boolean);
 
     if (skills.length === 0) {
@@ -33,21 +33,22 @@ export async function GET(req: Request) {
       },
     });
 
-    const grouped = matches.reduce<Record<string, typeof matches>>((acc, skill) => {
+    type SkillMatch = typeof matches[number];
+    const grouped = matches.reduce<Record<string, SkillMatch[]>>((acc, skill) => {
       if (!acc[skill.userId]) acc[skill.userId] = [];
       acc[skill.userId].push(skill);
       return acc;
     }, {});
 
     const result = Object.values(grouped)
-      .filter((userSkills) => {
+      .filter((userSkills: SkillMatch[]) => {
         if (mode === "or") return true;
-        const names = userSkills.map((skill) => skill.name.toLowerCase());
-        return skills.every((s) => names.includes(s.toLowerCase()));
+        const names = userSkills.map((skill: SkillMatch) => skill.name.toLowerCase());
+        return skills.every((s: string) => names.includes(s.toLowerCase()));
       })
-      .map((userSkills) => ({
+      .map((userSkills: SkillMatch[]) => ({
         user: userSkills[0].user,
-        skills: userSkills.map((skill) => ({ name: skill.name, level: skill.level })),
+        skills: userSkills.map((skill: SkillMatch) => ({ name: skill.name, level: skill.level })),
       }));
 
     return NextResponse.json(result);
