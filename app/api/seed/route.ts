@@ -475,3 +475,11 @@ async function seedDatabase() {
     return NextResponse.json({ error: "Failed to seed database", details: String(error) }, { status: 500 });
   }
 }
+
+export async function POST() {
+  return seedDatabase();
+}
+
+export async function GET() {
+  return seedDatabase();
+}
