@@ -14,6 +14,231 @@ export type Database = {
   }
   public: {
     Tables: {
+      _prisma_migrations: {
+        Row: {
+          applied_steps_count: number
+          checksum: string
+          finished_at: string | null
+          id: string
+          logs: string | null
+          migration_name: string
+          rolled_back_at: string | null
+          started_at: string
+        }
+        Insert: {
+          applied_steps_count?: number
+          checksum: string
+          finished_at?: string | null
+          id: string
+          logs?: string | null
+          migration_name: string
+          rolled_back_at?: string | null
+          started_at?: string
+        }
+        Update: {
+          applied_steps_count?: number
+          checksum?: string
+          finished_at?: string | null
+          id?: string
+          logs?: string | null
+          migration_name?: string
+          rolled_back_at?: string | null
+          started_at?: string
+        }
+        Relationships: []
+      }
+      Account: {
+        Row: {
+          access_token: string | null
+          expires_at: number | null
+          id: string
+          id_token: string | null
+          provider: string
+          providerAccountId: string
+          refresh_token: string | null
+          scope: string | null
+          session_state: string | null
+          token_type: string | null
+          type: string
+          userId: string
+        }
+        Insert: {
+          access_token?: string | null
+          expires_at?: number | null
+          id: string
+          id_token?: string | null
+          provider: string
+          providerAccountId: string
+          refresh_token?: string | null
+          scope?: string | null
+          session_state?: string | null
+          token_type?: string | null
+          type: string
+          userId: string
+        }
+        Update: {
+          access_token?: string | null
+          expires_at?: number | null
+          id?: string
+          id_token?: string | null
+          provider?: string
+          providerAccountId?: string
+          refresh_token?: string | null
+          scope?: string | null
+          session_state?: string | null
+          token_type?: string | null
+          type?: string
+          userId?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "Account_userId_fkey"
+            columns: ["userId"]
+            isOneToOne: false
+            referencedRelation: "User"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      Archetype: {
+        Row: {
+          createdAt: string
+          description: string | null
+          id: string
+          name: string
+          roadmapId: string | null
+          updatedAt: string
+        }
+        Insert: {
+          createdAt?: string
+          description?: string | null
+          id: string
+          name: string
+          roadmapId?: string | null
+          updatedAt?: string
+        }
+        Update: {
+          createdAt?: string
+          description?: string | null
+          id?: string
+          name?: string
+          roadmapId?: string | null
+          updatedAt?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "Archetype_roadmapId_fkey2"
+            columns: ["roadmapId"]
+            isOneToOne: false
+            referencedRelation: "Roadmap"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      AuditLog: {
+        Row: {
+          action: string
+          details: string | null
+          id: string
+          targetId: string | null
+          targetType: string | null
+          timestamp: string
+          userId: string
+        }
+        Insert: {
+          action: string
+          details?: string | null
+          id: string
+          targetId?: string | null
+          targetType?: string | null
+          timestamp?: string
+          userId: string
+        }
+        Update: {
+          action?: string
+          details?: string | null
+          id?: string
+          targetId?: string | null
+          targetType?: string | null
+          timestamp?: string
+          userId?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "AuditLog_userId_fkey2"
+            columns: ["userId"]
+            isOneToOne: false
+            referencedRelation: "User"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      Course: {
+        Row: {
+          contentType: string
+          contentUrl: string | null
+          createdAt: string
+          createdBy: string | null
+          description: string | null
+          difficulty: string
+          duration: number | null
+          id: string
+          moduleId: string | null
+          roadmapId: string | null
+          thumbnail: string | null
+          title: string
+          updatedAt: string
+          version: string
+        }
+        Insert: {
+          contentType?: string
+          contentUrl?: string | null
+          createdAt?: string
+          createdBy?: string | null
+          description?: string | null
+          difficulty?: string
+          duration?: number | null
+          id: string
+          moduleId?: string | null
+          roadmapId?: string | null
+          thumbnail?: string | null
+          title: string
+          updatedAt?: string
+          version?: string
+        }
+        Update: {
+          contentType?: string
+          contentUrl?: string | null
+          createdAt?: string
+          createdBy?: string | null
+          description?: string | null
+          difficulty?: string
+          duration?: number | null
+          id?: string
+          moduleId?: string | null
+          roadmapId?: string | null
+          thumbnail?: string | null
+          title?: string
+          updatedAt?: string
+          version?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "Course_moduleId_fkey2"
+            columns: ["moduleId"]
+            isOneToOne: false
+            referencedRelation: "Module"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "Course_roadmapId_fkey2"
+            columns: ["roadmapId"]
+            isOneToOne: false
+            referencedRelation: "Roadmap"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       course_enrollments: {
         Row: {
           completed_at: string | null
@@ -48,6 +273,51 @@ export type Database = {
             columns: ["course_id"]
             isOneToOne: false
             referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      CourseEnrollment: {
+        Row: {
+          completedAt: string | null
+          courseId: string
+          enrolledAt: string
+          id: string
+          progress: number
+          status: string
+          userId: string
+        }
+        Insert: {
+          completedAt?: string | null
+          courseId: string
+          enrolledAt?: string
+          id: string
+          progress?: number
+          status?: string
+          userId: string
+        }
+        Update: {
+          completedAt?: string | null
+          courseId?: string
+          enrolledAt?: string
+          id?: string
+          progress?: number
+          status?: string
+          userId?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "CourseEnrollment_courseId_fkey2"
+            columns: ["courseId"]
+            isOneToOne: false
+            referencedRelation: "Course"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "CourseEnrollment_userId_fkey2"
+            columns: ["userId"]
+            isOneToOne: false
+            referencedRelation: "User"
             referencedColumns: ["id"]
           },
         ]
@@ -134,6 +404,63 @@ export type Database = {
           },
         ]
       }
+      Feedback: {
+        Row: {
+          courseId: string | null
+          createdAt: string
+          id: string
+          isPrivate: boolean
+          rating: number | null
+          receiverId: string
+          senderId: string
+          text: string
+          threadId: string | null
+          type: string
+          updatedAt: string
+        }
+        Insert: {
+          courseId?: string | null
+          createdAt?: string
+          id: string
+          isPrivate?: boolean
+          rating?: number | null
+          receiverId: string
+          senderId: string
+          text: string
+          threadId?: string | null
+          type?: string
+          updatedAt?: string
+        }
+        Update: {
+          courseId?: string | null
+          createdAt?: string
+          id?: string
+          isPrivate?: boolean
+          rating?: number | null
+          receiverId?: string
+          senderId?: string
+          text?: string
+          threadId?: string | null
+          type?: string
+          updatedAt?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "Feedback_receiverId_fkey2"
+            columns: ["receiverId"]
+            isOneToOne: false
+            referencedRelation: "User"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "Feedback_senderId_fkey2"
+            columns: ["senderId"]
+            isOneToOne: false
+            referencedRelation: "User"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       learning_sessions: {
         Row: {
           course_id: string | null
@@ -168,6 +495,88 @@ export type Database = {
             columns: ["course_id"]
             isOneToOne: false
             referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      LearningSession: {
+        Row: {
+          createdAt: string
+          durationMinutes: number | null
+          endTime: string | null
+          id: string
+          notes: string | null
+          reflectionId: string | null
+          startTime: string
+          status: string
+          userId: string
+        }
+        Insert: {
+          createdAt?: string
+          durationMinutes?: number | null
+          endTime?: string | null
+          id: string
+          notes?: string | null
+          reflectionId?: string | null
+          startTime?: string
+          status?: string
+          userId: string
+        }
+        Update: {
+          createdAt?: string
+          durationMinutes?: number | null
+          endTime?: string | null
+          id?: string
+          notes?: string | null
+          reflectionId?: string | null
+          startTime?: string
+          status?: string
+          userId?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "LearningSession_userId_fkey2"
+            columns: ["userId"]
+            isOneToOne: false
+            referencedRelation: "User"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      Module: {
+        Row: {
+          createdAt: string
+          description: string | null
+          id: string
+          name: string
+          order: number
+          roadmapId: string
+          updatedAt: string
+        }
+        Insert: {
+          createdAt?: string
+          description?: string | null
+          id: string
+          name: string
+          order: number
+          roadmapId: string
+          updatedAt?: string
+        }
+        Update: {
+          createdAt?: string
+          description?: string | null
+          id?: string
+          name?: string
+          order?: number
+          roadmapId?: string
+          updatedAt?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "Module_roadmapId_fkey2"
+            columns: ["roadmapId"]
+            isOneToOne: false
+            referencedRelation: "Roadmap"
             referencedColumns: ["id"]
           },
         ]
@@ -209,6 +618,54 @@ export type Database = {
             columns: ["supervisor_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      Reflection: {
+        Row: {
+          courseId: string | null
+          createdAt: string
+          id: string
+          learningSessionId: string
+          mood: string | null
+          text: string
+          updatedAt: string
+          userId: string
+        }
+        Insert: {
+          courseId?: string | null
+          createdAt?: string
+          id: string
+          learningSessionId: string
+          mood?: string | null
+          text: string
+          updatedAt?: string
+          userId: string
+        }
+        Update: {
+          courseId?: string | null
+          createdAt?: string
+          id?: string
+          learningSessionId?: string
+          mood?: string | null
+          text?: string
+          updatedAt?: string
+          userId?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "Reflection_learningSessionId_fkey2"
+            columns: ["learningSessionId"]
+            isOneToOne: false
+            referencedRelation: "LearningSession"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "Reflection_userId_fkey2"
+            columns: ["userId"]
+            isOneToOne: false
+            referencedRelation: "User"
             referencedColumns: ["id"]
           },
         ]
@@ -258,6 +715,33 @@ export type Database = {
           },
         ]
       }
+      Roadmap: {
+        Row: {
+          archetype: string | null
+          createdAt: string
+          description: string | null
+          id: string
+          name: string
+          updatedAt: string
+        }
+        Insert: {
+          archetype?: string | null
+          createdAt?: string
+          description?: string | null
+          id: string
+          name: string
+          updatedAt?: string
+        }
+        Update: {
+          archetype?: string | null
+          createdAt?: string
+          description?: string | null
+          id?: string
+          name?: string
+          updatedAt?: string
+        }
+        Relationships: []
+      }
       roadmaps: {
         Row: {
           archetype: string
@@ -285,6 +769,85 @@ export type Database = {
         }
         Relationships: []
       }
+      Session: {
+        Row: {
+          expires: string
+          id: string
+          sessionToken: string
+          userId: string
+        }
+        Insert: {
+          expires: string
+          id: string
+          sessionToken: string
+          userId: string
+        }
+        Update: {
+          expires?: string
+          id?: string
+          sessionToken?: string
+          userId?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "Session_userId_fkey2"
+            columns: ["userId"]
+            isOneToOne: false
+            referencedRelation: "User"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      Skill: {
+        Row: {
+          createdAt: string
+          description: string | null
+          evidence: string | null
+          evidenceCourses: string | null
+          id: string
+          lastUpdated: string
+          level: number
+          name: string
+          proficiency: number
+          updatedAt: string
+          userId: string
+        }
+        Insert: {
+          createdAt?: string
+          description?: string | null
+          evidence?: string | null
+          evidenceCourses?: string | null
+          id: string
+          lastUpdated?: string
+          level?: number
+          name: string
+          proficiency?: number
+          updatedAt?: string
+          userId: string
+        }
+        Update: {
+          createdAt?: string
+          description?: string | null
+          evidence?: string | null
+          evidenceCourses?: string | null
+          id?: string
+          lastUpdated?: string
+          level?: number
+          name?: string
+          proficiency?: number
+          updatedAt?: string
+          userId?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "Skill_userId_fkey2"
+            columns: ["userId"]
+            isOneToOne: false
+            referencedRelation: "User"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       skills: {
         Row: {
           created_at: string
@@ -311,6 +874,59 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      Test: {
+        Row: {
+          attemptLimit: number
+          courseId: string
+          createdAt: string
+          description: string | null
+          gradingType: string
+          id: string
+          passingScore: number
+          questions: string
+          timeLimit: number | null
+          title: string
+          type: string
+          updatedAt: string
+        }
+        Insert: {
+          attemptLimit?: number
+          courseId: string
+          createdAt?: string
+          description?: string | null
+          gradingType?: string
+          id: string
+          passingScore?: number
+          questions: string
+          timeLimit?: number | null
+          title: string
+          type?: string
+          updatedAt?: string
+        }
+        Update: {
+          attemptLimit?: number
+          courseId?: string
+          createdAt?: string
+          description?: string | null
+          gradingType?: string
+          id?: string
+          passingScore?: number
+          questions?: string
+          timeLimit?: number | null
+          title?: string
+          type?: string
+          updatedAt?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "Test_courseId_fkey2"
+            columns: ["courseId"]
+            isOneToOne: false
+            referencedRelation: "Course"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       test_results: {
         Row: {
@@ -365,6 +981,69 @@ export type Database = {
           },
         ]
       }
+      TestResult: {
+        Row: {
+          answers: string
+          attemptNumber: number
+          createdAt: string
+          feedback: string | null
+          gradedAt: string | null
+          gradedBy: string | null
+          id: string
+          score: number
+          startedAt: string
+          status: string
+          submittedAt: string | null
+          testId: string
+          userId: string
+        }
+        Insert: {
+          answers: string
+          attemptNumber?: number
+          createdAt?: string
+          feedback?: string | null
+          gradedAt?: string | null
+          gradedBy?: string | null
+          id: string
+          score: number
+          startedAt?: string
+          status?: string
+          submittedAt?: string | null
+          testId: string
+          userId: string
+        }
+        Update: {
+          answers?: string
+          attemptNumber?: number
+          createdAt?: string
+          feedback?: string | null
+          gradedAt?: string | null
+          gradedBy?: string | null
+          id?: string
+          score?: number
+          startedAt?: string
+          status?: string
+          submittedAt?: string | null
+          testId?: string
+          userId?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "TestResult_testId_fkey2"
+            columns: ["testId"]
+            isOneToOne: false
+            referencedRelation: "Test"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "TestResult_userId_fkey2"
+            columns: ["userId"]
+            isOneToOne: false
+            referencedRelation: "User"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tests: {
         Row: {
           course_id: string
@@ -412,6 +1091,59 @@ export type Database = {
           },
         ]
       }
+      User: {
+        Row: {
+          archetype: string | null
+          createdAt: string
+          email: string | null
+          emailVerified: string | null
+          id: string
+          image: string | null
+          name: string | null
+          password: string | null
+          role: string
+          supervisorId: string | null
+          totalLearningHours: number
+          updatedAt: string
+        }
+        Insert: {
+          archetype?: string | null
+          createdAt?: string
+          email?: string | null
+          emailVerified?: string | null
+          id: string
+          image?: string | null
+          name?: string | null
+          password?: string | null
+          role?: string
+          supervisorId?: string | null
+          totalLearningHours?: number
+          updatedAt?: string
+        }
+        Update: {
+          archetype?: string | null
+          createdAt?: string
+          email?: string | null
+          emailVerified?: string | null
+          id?: string
+          image?: string | null
+          name?: string | null
+          password?: string | null
+          role?: string
+          supervisorId?: string | null
+          totalLearningHours?: number
+          updatedAt?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "User_supervisorId_fkey"
+            columns: ["supervisorId"]
+            isOneToOne: false
+            referencedRelation: "User"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -430,6 +1162,24 @@ export type Database = {
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
+        }
+        Relationships: []
+      }
+      VerificationToken: {
+        Row: {
+          expires: string
+          identifier: string
+          token: string
+        }
+        Insert: {
+          expires: string
+          identifier: string
+          token: string
+        }
+        Update: {
+          expires?: string
+          identifier?: string
+          token?: string
         }
         Relationships: []
       }
