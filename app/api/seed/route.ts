@@ -4,7 +4,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import bcrypt from "bcryptjs";
 
-export async function POST() {
+async function seedDatabase() {
   const session = await getServerSession(authOptions);
   const role = session?.user?.role?.toLowerCase();
 
