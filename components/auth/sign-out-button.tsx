@@ -10,7 +10,7 @@ export function SignOutButton() {
             variant="ghost"
             size="icon"
             className="h-8 w-8 rounded-full text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
-            onClick={() => signOut({ callbackUrl: "/auth/signin" })}
+            onClick={() => signOut({ callbackUrl: "/auth" })}
         >
             <LogOut className="h-4 w-4" />
         </Button>

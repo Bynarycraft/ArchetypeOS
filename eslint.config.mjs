@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    "bak/**",
+    "scripts/role-uat-report.json",
   ]),
   {
     rules: {

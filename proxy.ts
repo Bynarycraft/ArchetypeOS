@@ -1,18 +1,14 @@
 import { getToken } from "next-auth/jwt";
 import { NextRequest, NextResponse } from "next/server";
 
-const publicRoutes = ["/auth/signin", "/auth/signup", "/"];
-const candidateRoutes = ["/candidate"];
-const learnerRoutes = ["/dashboard", "/courses", "/tracker", "/profile"];
-const supervisorRoutes = ["/dashboard", "/supervisor"];
-const adminRoutes = ["/admin"];
+const publicRoutes = ["/", "/auth", "/auth/signin", "/auth/signup"];
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET });
   const pathname = request.nextUrl.pathname;
 
   // Allow public routes
-  if (publicRoutes.includes(pathname)) {
+  if (publicRoutes.includes(pathname) || pathname.startsWith("/auth/")) {
     return NextResponse.next();
   }
 

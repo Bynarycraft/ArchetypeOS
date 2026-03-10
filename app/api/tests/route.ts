@@ -12,7 +12,16 @@ export async function GET(request: NextRequest) {
     const tests = await prisma.test.findMany({
       where: courseId ? { courseId } : {},
       include: {
-        results: true,
+        course: {
+          select: { id: true, title: true },
+        },
+        results: {
+          include: {
+            user: {
+              select: { name: true, email: true },
+            },
+          },
+        },
       },
     });
 
@@ -35,7 +44,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 
-    const { courseId, title, description, type, timeLimit, passingScore, questions, gradingType } = await request.json();
+    const { courseId, title, type, timeLimit, passingScore, questions, gradingType } = await request.json();
 
     if (!courseId || !title || !questions) {
       return NextResponse.json(

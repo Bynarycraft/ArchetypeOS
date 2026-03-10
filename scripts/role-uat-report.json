@@ -1,0 +1,275 @@
+[
+    {
+        "Actor":  "anonymous",
+        "SessionRole":  "none",
+        "Path":  "/auth",
+        "Status":  307,
+        "Location":  "/auth/signin"
+    },
+    {
+        "Actor":  "anonymous",
+        "SessionRole":  "none",
+        "Path":  "/auth/signin",
+        "Status":  200,
+        "Location":  null
+    },
+    {
+        "Actor":  "anonymous",
+        "SessionRole":  "none",
+        "Path":  "/dashboard",
+        "Status":  307,
+        "Location":  "/auth/signin"
+    },
+    {
+        "Actor":  "anonymous",
+        "SessionRole":  "none",
+        "Path":  "/courses",
+        "Status":  307,
+        "Location":  "/auth/signin"
+    },
+    {
+        "Actor":  "anonymous",
+        "SessionRole":  "none",
+        "Path":  "/tests",
+        "Status":  307,
+        "Location":  "/auth/signin"
+    },
+    {
+        "Actor":  "anonymous",
+        "SessionRole":  "none",
+        "Path":  "/admin/users",
+        "Status":  307,
+        "Location":  "/auth/signin"
+    },
+    {
+        "Actor":  "anonymous",
+        "SessionRole":  "none",
+        "Path":  "/supervisor",
+        "Status":  307,
+        "Location":  "/auth/signin"
+    },
+    {
+        "Actor":  "candidate",
+        "SessionRole":  "candidate",
+        "Path":  "/dashboard",
+        "Status":  200,
+        "Location":  null
+    },
+    {
+        "Actor":  "candidate",
+        "SessionRole":  "candidate",
+        "Path":  "/courses",
+        "Status":  200,
+        "Location":  null
+    },
+    {
+        "Actor":  "candidate",
+        "SessionRole":  "candidate",
+        "Path":  "/tests",
+        "Status":  200,
+        "Location":  null
+    },
+    {
+        "Actor":  "candidate",
+        "SessionRole":  "candidate",
+        "Path":  "/tracker",
+        "Status":  200,
+        "Location":  null
+    },
+    {
+        "Actor":  "candidate",
+        "SessionRole":  "candidate",
+        "Path":  "/roadmap",
+        "Status":  200,
+        "Location":  null
+    },
+    {
+        "Actor":  "candidate",
+        "SessionRole":  "candidate",
+        "Path":  "/profile",
+        "Status":  200,
+        "Location":  null
+    },
+    {
+        "Actor":  "candidate",
+        "SessionRole":  "candidate",
+        "Path":  "/supervisor",
+        "Status":  307,
+        "Location":  "/dashboard"
+    },
+    {
+        "Actor":  "candidate",
+        "SessionRole":  "candidate",
+        "Path":  "/admin/users",
+        "Status":  307,
+        "Location":  "/dashboard"
+    },
+    {
+        "Actor":  "learner",
+        "SessionRole":  "learner",
+        "Path":  "/dashboard",
+        "Status":  200,
+        "Location":  null
+    },
+    {
+        "Actor":  "learner",
+        "SessionRole":  "learner",
+        "Path":  "/courses",
+        "Status":  200,
+        "Location":  null
+    },
+    {
+        "Actor":  "learner",
+        "SessionRole":  "learner",
+        "Path":  "/tests",
+        "Status":  200,
+        "Location":  null
+    },
+    {
+        "Actor":  "learner",
+        "SessionRole":  "learner",
+        "Path":  "/tracker",
+        "Status":  200,
+        "Location":  null
+    },
+    {
+        "Actor":  "learner",
+        "SessionRole":  "learner",
+        "Path":  "/roadmap",
+        "Status":  200,
+        "Location":  null
+    },
+    {
+        "Actor":  "learner",
+        "SessionRole":  "learner",
+        "Path":  "/profile",
+        "Status":  200,
+        "Location":  null
+    },
+    {
+        "Actor":  "learner",
+        "SessionRole":  "learner",
+        "Path":  "/supervisor",
+        "Status":  307,
+        "Location":  "/dashboard"
+    },
+    {
+        "Actor":  "learner",
+        "SessionRole":  "learner",
+        "Path":  "/admin/users",
+        "Status":  307,
+        "Location":  "/dashboard"
+    },
+    {
+        "Actor":  "supervisor",
+        "SessionRole":  "supervisor",
+        "Path":  "/dashboard",
+        "Status":  200,
+        "Location":  null
+    },
+    {
+        "Actor":  "supervisor",
+        "SessionRole":  "supervisor",
+        "Path":  "/courses",
+        "Status":  200,
+        "Location":  null
+    },
+    {
+        "Actor":  "supervisor",
+        "SessionRole":  "supervisor",
+        "Path":  "/tests",
+        "Status":  200,
+        "Location":  null
+    },
+    {
+        "Actor":  "supervisor",
+        "SessionRole":  "supervisor",
+        "Path":  "/tracker",
+        "Status":  200,
+        "Location":  null
+    },
+    {
+        "Actor":  "supervisor",
+        "SessionRole":  "supervisor",
+        "Path":  "/roadmap",
+        "Status":  200,
+        "Location":  null
+    },
+    {
+        "Actor":  "supervisor",
+        "SessionRole":  "supervisor",
+        "Path":  "/profile",
+        "Status":  200,
+        "Location":  null
+    },
+    {
+        "Actor":  "supervisor",
+        "SessionRole":  "supervisor",
+        "Path":  "/supervisor",
+        "Status":  200,
+        "Location":  null
+    },
+    {
+        "Actor":  "supervisor",
+        "SessionRole":  "supervisor",
+        "Path":  "/admin/users",
+        "Status":  307,
+        "Location":  "/dashboard"
+    },
+    {
+        "Actor":  "admin",
+        "SessionRole":  "admin",
+        "Path":  "/dashboard",
+        "Status":  200,
+        "Location":  null
+    },
+    {
+        "Actor":  "admin",
+        "SessionRole":  "admin",
+        "Path":  "/courses",
+        "Status":  200,
+        "Location":  null
+    },
+    {
+        "Actor":  "admin",
+        "SessionRole":  "admin",
+        "Path":  "/tests",
+        "Status":  200,
+        "Location":  null
+    },
+    {
+        "Actor":  "admin",
+        "SessionRole":  "admin",
+        "Path":  "/tracker",
+        "Status":  200,
+        "Location":  null
+    },
+    {
+        "Actor":  "admin",
+        "SessionRole":  "admin",
+        "Path":  "/roadmap",
+        "Status":  200,
+        "Location":  null
+    },
+    {
+        "Actor":  "admin",
+        "SessionRole":  "admin",
+        "Path":  "/profile",
+        "Status":  200,
+        "Location":  null
+    },
+    {
+        "Actor":  "admin",
+        "SessionRole":  "admin",
+        "Path":  "/supervisor",
+        "Status":  200,
+        "Location":  null
+    },
+    {
+        "Actor":  "admin",
+        "SessionRole":  "admin",
+        "Path":  "/admin/users",
+        "Status":  200,
+        "Location":  null
+    }
+]

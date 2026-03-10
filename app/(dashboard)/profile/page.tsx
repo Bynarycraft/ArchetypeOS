@@ -2,10 +2,13 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { User, Mail, Shield, UserCircle, Calendar, MapPin } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import Link from "next/link";
+import { TabHelperCard } from "@/components/layout/tab-helper-card";
 
 export default async function ProfilePage() {
     const session = await getServerSession(authOptions);
@@ -14,7 +17,15 @@ export default async function ProfilePage() {
         redirect("/auth/signin");
     }
 
-    let user: any = null;
+    type ProfileUser = Prisma.UserGetPayload<{
+        include: {
+            courseEnrollments: { include: { course: true } };
+            dailyLearningSessions: true;
+            testResults: true;
+        };
+    }>;
+
+    let user: ProfileUser | null = null;
     try {
         user = await prisma.user.findUnique({
             where: { id: session.user.id },
@@ -25,12 +36,11 @@ export default async function ProfilePage() {
             }
         });
     } catch (err) {
-        // eslint-disable-next-line no-console
         console.error('[profile] prisma error:', err);
         return (
             <div className="p-12 text-center">
                 <h2 className="text-2xl font-bold">Data currently unavailable</h2>
-                <p className="mt-4 text-muted-foreground">We couldn't load your profile data right now — please try again later.</p>
+                <p className="mt-4 text-muted-foreground">We couldn&apos;t load your profile data right now, please try again later.</p>
             </div>
         );
     }
@@ -48,6 +58,16 @@ export default async function ProfilePage() {
             </div>
 
             <div className="grid gap-10 lg:grid-cols-12">
+                <div className="lg:col-span-12">
+                    <TabHelperCard
+                        summary="This tab centralizes account identity, role, archetype, and achievement details."
+                        points={[
+                            "Review account and archetype information.",
+                            "Check progress indicators and validated assessments.",
+                            "Use quick actions to continue learning from your profile.",
+                        ]}
+                    />
+                </div>
                 <div className="lg:col-span-4 space-y-8">
                     <Card className="border-none bg-gradient-to-b from-primary/10 to-transparent shadow-2xl shadow-primary/5 rounded-[3rem] p-1 group">
                         <CardContent className="pt-12 bg-card/80 backdrop-blur-xl rounded-[calc(3rem-4px)] flex flex-col items-center text-center relative overflow-hidden">
@@ -66,7 +86,9 @@ export default async function ProfilePage() {
                                 <Badge className="bg-accent/20 text-accent border-none font-black tracking-widest px-4 py-1.5 uppercase text-[10px] shadow-lg shadow-accent/10">{user.archetype} ARCHEOTYPE</Badge>
                             </div>
                             <div className="mt-8 pb-8 w-full px-8">
-                                <Button className="w-full font-black uppercase text-[10px] tracking-widest h-11 rounded-2xl shadow-xl shadow-primary/20 transition-all active:scale-95">Update Identity</Button>
+                                <Link href="/tracker">
+                                    <Button className="w-full font-black uppercase text-[10px] tracking-widest h-11 rounded-2xl shadow-xl shadow-primary/20 transition-all active:scale-95">Open Learning Tracker</Button>
+                                </Link>
                             </div>
                         </CardContent>
                     </Card>

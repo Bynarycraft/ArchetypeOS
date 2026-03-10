@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
@@ -22,6 +22,7 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { ArrowLeft, Loader2 } from "lucide-react";
+import { TabHelperCard } from "@/components/layout/tab-helper-card";
 
 export default function NewCoursePage() {
     const { data: session, status } = useSession();
@@ -36,12 +37,23 @@ export default function NewCoursePage() {
         duration: "",
     });
 
-    if (status === "unauthenticated") {
-        router.push("/auth/signin");
-    }
+    useEffect(() => {
+        if (status === "unauthenticated") {
+            router.push("/auth/signin");
+            return;
+        }
 
-    if (session?.user?.role !== "admin") {
-        router.push("/dashboard");
+        if (status === "authenticated" && session?.user?.role !== "admin") {
+            router.push("/dashboard");
+        }
+    }, [status, session, router]);
+
+    if (status === "loading") {
+        return (
+            <div className="flex min-h-[60vh] items-center justify-center">
+                <Loader2 className="h-8 w-8 animate-spin" />
+            </div>
+        );
     }
 
     const handleChange = (
@@ -70,7 +82,7 @@ export default function NewCoursePage() {
             });
 
             if (res.ok) {
-                const course = await res.json();
+                await res.json();
                 router.push("/admin/courses");
             } else {
                 alert("Failed to create course");
@@ -105,6 +117,15 @@ export default function NewCoursePage() {
                     Add a new course to your learning library. Fill in the details below.
                 </p>
             </div>
+
+            <TabHelperCard
+                summary="This tab creates new course entries that appear in the learner and admin course views."
+                points={[
+                    "Define title, difficulty, and content type.",
+                    "Provide links or references for learning materials.",
+                    "Save course data for immediate catalog availability.",
+                ]}
+            />
 
             {/* Form */}
             <Card className="border-none glass-card rounded-3xl shadow-2xl shadow-primary/5 max-w-3xl">
@@ -188,6 +209,7 @@ export default function NewCoursePage() {
                                 <SelectContent className="rounded-xl">
                                     <SelectItem value="video">Video</SelectItem>
                                     <SelectItem value="text">Text</SelectItem>
+                                    <SelectItem value="image">Image</SelectItem>
                                     <SelectItem value="pdf">PDF Document</SelectItem>
                                     <SelectItem value="link">External Link</SelectItem>
                                 </SelectContent>

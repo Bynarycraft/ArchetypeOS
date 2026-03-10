@@ -18,11 +18,13 @@ export async function PATCH(
   try {
     const body = await req.json();
     const { role, archetype } = body;
+    const normalizedRole = role ? String(role).toLowerCase() : undefined;
+    const normalizedArchetype = archetype === "NONE" ? null : archetype;
 
     const validRoles = ['candidate', 'learner', 'supervisor', 'admin'];
     const validArchetypes = ['MAKER', 'ARCHITECT', 'REFINER', 'CATALYST', 'CRAFTSMAN', 'NONE'];
 
-    if (role && !validRoles.includes(role)) {
+    if (normalizedRole && !validRoles.includes(normalizedRole)) {
       return NextResponse.json({ error: "Invalid role" }, { status: 400 });
     }
 
@@ -33,8 +35,8 @@ export async function PATCH(
     const updatedUser = await prisma.user.update({
       where: { id: userId },
       data: {
-        ...(role && { role }),
-        ...(archetype && { archetype }),
+        ...(normalizedRole && { role: normalizedRole }),
+        ...(archetype !== undefined && { archetype: normalizedArchetype }),
       },
     });
 

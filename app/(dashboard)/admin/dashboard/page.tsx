@@ -3,31 +3,41 @@
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  LineChart,
-  Line,
-  BarChart,
-  Bar,
-  PieChart,
-  Pie,
-  Cell,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-} from "recharts";
 import { Loader2 } from "lucide-react";
+import { TabHelperCard } from "@/components/layout/tab-helper-card";
+
+const AdminDashboardCharts = dynamic(
+  () => import("@/components/admin/admin-dashboard-charts").then((m) => m.AdminDashboardCharts),
+  { ssr: false }
+);
 
 export default function AdminDashboard() {
+  type AnalyticsResponse = {
+    totalLearningMinutes: number;
+    averageTestScore: number;
+  };
+
+  type AdminUser = {
+    id: string;
+    name: string | null;
+    email: string | null;
+    role: string;
+    archetype: string | null;
+    createdAt: string;
+  };
+
+  type RoleDistribution = {
+    name: string;
+    value: number;
+  };
+
   const { data: session, status } = useSession();
   const router = useRouter();
-  const [analytics, setAnalytics] = useState<any>(null);
-  const [users, setUsers] = useState([]);
+  const [analytics, setAnalytics] = useState<AnalyticsResponse | null>(null);
+  const [users, setUsers] = useState<AdminUser[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -73,17 +83,9 @@ export default function AdminDashboard() {
     );
   }
 
-  const mockChartData = [
-    { name: "Jan", hours: 120 },
-    { name: "Feb", hours: 190 },
-    { name: "Mar", hours: 150 },
-    { name: "Apr", hours: 220 },
-    { name: "May", hours: 180 },
-  ];
-
-  const roleDistribution = users?.reduce((acc: any, user: any) => {
+  const roleDistribution = users.reduce<RoleDistribution[]>((acc, user) => {
     const role = user.role || "unknown";
-    const existing = acc.find((r: any) => r.name === role);
+    const existing = acc.find((r) => r.name === role);
     if (existing) {
       existing.value += 1;
     } else {
@@ -92,14 +94,21 @@ export default function AdminDashboard() {
     return acc;
   }, []);
 
-  const COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#ef4444"];
-
   return (
     <div className="space-y-8 p-6">
       <div>
         <h1 className="text-3xl font-bold">Admin Dashboard</h1>
         <p className="text-muted-foreground">Organization-wide insights and management</p>
       </div>
+
+      <TabHelperCard
+        summary="This tab provides a management overview of organization learning performance and user distribution."
+        points={[
+          "Track top-level metrics like total users and average scores.",
+          "Review trend charts and role distribution.",
+          "Switch between overview and detailed user table tabs.",
+        ]}
+      />
 
       <Tabs defaultValue="overview" className="space-y-4">
         <TabsList>
@@ -142,53 +151,7 @@ export default function AdminDashboard() {
             </Card>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-2">
-            <Card>
-              <CardHeader>
-                <CardTitle>Learning Hours Trend</CardTitle>
-                <CardDescription>Monthly learning hours</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <LineChart data={mockChartData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="name" />
-                    <YAxis />
-                    <Tooltip />
-                    <Line type="monotone" dataKey="hours" stroke="#3b82f6" />
-                  </LineChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>User Distribution by Role</CardTitle>
-                <CardDescription>Current role breakdown</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <PieChart>
-                    <Pie
-                      data={roleDistribution}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={false}
-                      label={({ name, value }) => `${name} (${value})`}
-                      outerRadius={80}
-                      fill="#8884d8"
-                      dataKey="value"
-                    >
-                      {roleDistribution?.map((entry: any, index: number) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                  </PieChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-          </div>
+          <AdminDashboardCharts roleDistribution={roleDistribution || []} />
         </TabsContent>
 
         <TabsContent value="users" className="space-y-4">
@@ -210,7 +173,7 @@ export default function AdminDashboard() {
                     </tr>
                   </thead>
                   <tbody>
-                    {users?.map((user: any) => (
+                    {users.map((user) => (
                       <tr key={user.id} className="border-b hover:bg-muted/50">
                         <td className="py-2 px-4">{user.name}</td>
                         <td className="py-2 px-4">{user.email}</td>

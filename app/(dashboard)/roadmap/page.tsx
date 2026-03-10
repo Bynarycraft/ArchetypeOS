@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { Card, CardContent } from "@/components/ui/card";
 import { GraduationCap } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { TabHelperCard } from "@/components/layout/tab-helper-card";
 
 export default async function RoadmapPage() {
     const session = await getServerSession(authOptions);
@@ -50,6 +51,15 @@ export default async function RoadmapPage() {
             </div>
 
             <div className="grid gap-12">
+                <TabHelperCard
+                    summary="This tab shows your archetype-specific path and expected learning sequence."
+                    points={[
+                        "See each step and its completion state.",
+                        "Understand what to take next in your roadmap.",
+                        "Track progression from starter modules to advanced modules.",
+                    ]}
+                />
+
                 {roadmaps.map((roadmap) => (
                     <div key={roadmap.id} className="space-y-8">
                         <div className="flex items-center gap-4">

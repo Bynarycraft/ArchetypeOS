@@ -28,23 +28,27 @@ export async function POST(
         }
 
         let score = 0;
-        let status: "SUBMITTED" | "GRADED" = "SUBMITTED";
+        let status: "submitted" | "graded" = "submitted";
         interface Question {
-            correct: number;
+            correct?: number;
+            correctAnswer?: number;
         }
 
-        const questions = (test.questions as unknown as Question[]) || [];
+        const questions: Question[] = typeof test.questions === "string"
+            ? JSON.parse(test.questions)
+            : ((test.questions as unknown as Question[]) || []);
 
         // 1. Grading logic for MCQ
-        if (test.type === "MCQ" && questions.length > 0) {
+        if (test.type.toLowerCase() === "mcq" && questions.length > 0) {
             let correctCount = 0;
             questions.forEach((q, idx) => {
-                if (answers[idx] === q.correct) {
+                const expected = q.correct ?? q.correctAnswer;
+                if (answers[idx] === expected) {
                     correctCount++;
                 }
             });
             score = Math.round((correctCount / questions.length) * 100);
-            status = "GRADED";
+            status = "graded";
         }
 
         // 2. Save result
@@ -52,7 +56,7 @@ export async function POST(
             data: {
                 testId,
                 userId: session.user.id,
-                answers,
+                answers: JSON.stringify(answers),
                 score,
                 status,
                 submittedAt: new Date(),
@@ -78,7 +82,7 @@ export async function POST(
             if (session.user.role === "candidate") {
                 await prisma.user.update({
                     where: { id: session.user.id },
-                    data: { role: "LEARNER" }
+                    data: { role: "learner" }
                 });
             }
         }

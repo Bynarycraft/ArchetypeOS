@@ -84,7 +84,7 @@ async function main() {
   console.log('✓ Created candidate user:', candidate1.email)
 
   // Create Archetypes
-  const architectureArchetype = await prisma.archetype.upsert({
+  const _architectureArchetype = await prisma.archetype.upsert({
     where: { name: 'Architect' },
     update: {},
     create: {
@@ -93,7 +93,7 @@ async function main() {
     }
   })
 
-  const makerArchetype = await prisma.archetype.upsert({
+  const _makerArchetype = await prisma.archetype.upsert({
     where: { name: 'Maker' },
     update: {},
     create: {
@@ -102,7 +102,7 @@ async function main() {
     }
   })
 
-  const catalystArchetype = await prisma.archetype.upsert({
+  const _catalystArchetype = await prisma.archetype.upsert({
     where: { name: 'Catalyst' },
     update: {},
     create: {
@@ -127,8 +127,11 @@ async function main() {
   console.log('✓ Created roadmap')
 
   // Create Modules
-  const module1 = await prisma.module.create({
-    data: {
+  const module1 = await prisma.module.upsert({
+    where: { id: 'module-1' },
+    update: {},
+    create: {
+      id: 'module-1',
       roadmapId: roadmap.id,
       name: 'Frontend Fundamentals',
       description: 'HTML, CSS, JavaScript basics',
@@ -136,8 +139,11 @@ async function main() {
     }
   })
 
-  const module2 = await prisma.module.create({
-    data: {
+  const module2 = await prisma.module.upsert({
+    where: { id: 'module-2' },
+    update: {},
+    create: {
+      id: 'module-2',
       roadmapId: roadmap.id,
       name: 'Backend Development',
       description: 'Node.js and API development',
@@ -216,7 +222,7 @@ async function main() {
     }
   })
 
-  const course5 = await prisma.course.upsert({
+  const _course5 = await prisma.course.upsert({
     where: { id: 'course-5' },
     update: {},
     create: {
@@ -233,7 +239,7 @@ async function main() {
     }
   })
 
-  const course6 = await prisma.course.upsert({
+  const _course6 = await prisma.course.upsert({
     where: { id: 'course-6' },
     update: {},
     create: {
@@ -243,9 +249,26 @@ async function main() {
       difficulty: 'advanced',
       roadmapId: roadmap.id,
       moduleId: module2.id,
-      contentType: 'text',
-      contentUrl: '/guides/system-design.md',
+      contentType: 'link',
+      contentUrl: 'https://martinfowler.com/tags/architecture.html',
       duration: 240,
+      version: '1.0'
+    }
+  })
+
+  await prisma.course.upsert({
+    where: { id: 'course-7' },
+    update: {},
+    create: {
+      id: 'course-7',
+      title: 'UI System Patterns (Image Notes)',
+      description: 'A visual guide to spacing, hierarchy, and card systems used in production SaaS products.',
+      difficulty: 'beginner',
+      roadmapId: roadmap.id,
+      moduleId: module1.id,
+      contentType: 'image',
+      contentUrl: 'https://images.unsplash.com/photo-1558655146-d09347e92766?auto=format&fit=crop&w=1280&q=80',
+      duration: 90,
       version: '1.0'
     }
   })
@@ -278,8 +301,11 @@ async function main() {
   console.log('✓ Created course enrollments')
 
   // Create Tests
-  const test1 = await prisma.test.create({
-    data: {
+  const test1 = await prisma.test.upsert({
+    where: { id: 'test-1' },
+    update: {},
+    create: {
+      id: 'test-1',
       courseId: course1.id,
       title: 'React Fundamentals Test',
       description: 'Test your knowledge of React basics',
@@ -310,8 +336,16 @@ async function main() {
   console.log('✓ Created tests')
 
   // Create Test Results
-  await prisma.testResult.create({
-    data: {
+  await prisma.testResult.upsert({
+    where: {
+      userId_testId_attemptNumber: {
+        userId: learner1.id,
+        testId: test1.id,
+        attemptNumber: 1,
+      }
+    },
+    update: {},
+    create: {
       userId: learner1.id,
       testId: test1.id,
       score: 85,
@@ -330,8 +364,11 @@ async function main() {
   const now = new Date()
   const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000)
   
-  await prisma.learningSession.create({
-    data: {
+  await prisma.learningSession.upsert({
+    where: { id: 'session-1' },
+    update: {},
+    create: {
+      id: 'session-1',
       userId: learner1.id,
       status: 'completed',
       startTime: yesterday,
@@ -340,8 +377,11 @@ async function main() {
     }
   })
 
-  await prisma.learningSession.create({
-    data: {
+  await prisma.learningSession.upsert({
+    where: { id: 'session-2' },
+    update: {},
+    create: {
+      id: 'session-2',
       userId: learner2.id,
       status: 'completed',
       startTime: yesterday,

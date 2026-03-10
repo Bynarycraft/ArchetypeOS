@@ -20,7 +20,8 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 
 interface Question {
-    q: string;
+    q?: string;
+    question?: string;
     options: string[];
 }
 
@@ -29,7 +30,7 @@ interface Test {
     title: string;
     description: string | null;
     questions: Question[];
-    timeLimitMinutes: number | null;
+    timeLimit: number | null;
 }
 
 export default function TestPage({ params }: { params: Promise<{ courseId: string, testId: string }> }) {
@@ -51,9 +52,12 @@ export default function TestPage({ params }: { params: Promise<{ courseId: strin
                     return;
                 }
                 const data = await res.json();
+                if (typeof data.questions === "string") {
+                    data.questions = JSON.parse(data.questions);
+                }
                 setTest(data);
-                if (data.timeLimitMinutes) {
-                    setTimeLeft(data.timeLimitMinutes * 60);
+                if (data.timeLimit) {
+                    setTimeLeft(data.timeLimit * 60);
                 }
             } catch (error) {
                 console.error("Failed to fetch test:", error);
@@ -143,7 +147,7 @@ export default function TestPage({ params }: { params: Promise<{ courseId: strin
             <Card className="border-none glass-card shadow-3xl rounded-[3rem] overflow-hidden">
                 <CardHeader className="p-10 pb-6 border-b border-border/10 bg-muted/20">
                     <CardTitle className="text-2xl font-black leading-tight tracking-tight">
-                        {currentQuestion.q}
+                        {currentQuestion.q || currentQuestion.question}
                     </CardTitle>
                 </CardHeader>
                 <CardContent className="p-10">

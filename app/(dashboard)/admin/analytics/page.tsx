@@ -4,6 +4,7 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChart3, Users, Clock, Award } from "lucide-react";
+import { TabHelperCard } from "@/components/layout/tab-helper-card";
 
 export default async function AdminAnalyticsPage() {
     const session = await getServerSession(authOptions);
@@ -46,6 +47,15 @@ export default async function AdminAnalyticsPage() {
                 <h1 className="text-4xl font-bold tracking-tight">Company Analytics</h1>
                 <p className="text-muted-foreground mt-2">Overview of platform metrics and user engagement</p>
             </div>
+
+            <TabHelperCard
+                summary="This tab gives leadership a focused analytics view for platform adoption and learning health."
+                points={[
+                    "Track users, courses, assessments, and 7-day sessions.",
+                    "Compare role distribution for access planning.",
+                    "Review archetype distribution for coaching decisions.",
+                ]}
+            />
 
             {/* Key Metrics Grid */}
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">

@@ -7,7 +7,8 @@ import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
-import { PlayCircle, CheckCircle2, Clock, FileText, Video, BookOpen, ExternalLink, Award, Users, AlertCircle } from 'lucide-react'
+import { CheckCircle2, Clock, FileText, Video, BookOpen, ExternalLink, Users, AlertCircle } from 'lucide-react'
+import { TabHelperCard } from '@/components/layout/tab-helper-card'
 
 interface Course {
   id: string
@@ -37,6 +38,7 @@ export default function CoursePage() {
   const [enrollment, setEnrollment] = useState<Enrollment | null>(null)
   const [loading, setLoading] = useState(true)
   const [enrolling, setEnrolling] = useState(false)
+  const [completedLessons, setCompletedLessons] = useState<number[]>([])
 
   useEffect(() => {
     async function fetchCourse() {
@@ -63,6 +65,13 @@ export default function CoursePage() {
     fetchCourse()
   }, [courseId, router])
 
+  useEffect(() => {
+    if (!enrollment) return
+    const lessonCount = 3
+    const completed = Math.round((enrollment.progress / 100) * lessonCount)
+    setCompletedLessons(Array.from({ length: completed }, (_, idx) => idx + 1))
+  }, [enrollment])
+
   const handleStartCourse = async () => {
     setEnrolling(true)
     try {
@@ -75,6 +84,38 @@ export default function CoursePage() {
       console.error('Failed to enroll:', err)
     } finally {
       setEnrolling(false)
+    }
+  }
+
+  const lessons = [
+    { id: 1, title: 'Read course overview and objectives' },
+    { id: 2, title: 'Study primary learning material' },
+    { id: 3, title: 'Complete course assessment' },
+  ]
+
+  const completedCount = lessons.filter((lesson) => completedLessons.includes(lesson.id)).length
+  const calculatedProgress = Math.round((completedCount / lessons.length) * 100)
+
+  const toggleLesson = async (lessonId: number) => {
+    const nextCompleted = completedLessons.includes(lessonId)
+      ? completedLessons.filter((id) => id !== lessonId)
+      : [...completedLessons, lessonId]
+
+    setCompletedLessons(nextCompleted)
+
+    try {
+      const progress = Math.round((nextCompleted.length / lessons.length) * 100)
+      const res = await fetch(`/api/courses/${courseId}/progress`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ progress }),
+      })
+      if (res.ok) {
+        const updated = await res.json()
+        setEnrollment(updated)
+      }
+    } catch (err) {
+      console.error('Failed to update progress:', err)
     }
   }
 
@@ -109,6 +150,15 @@ export default function CoursePage() {
       </Link>
 
       {/* Header Section */}
+      <TabHelperCard
+        summary="This page explains one course in detail and lets learners complete lessons and assessments."
+        points={[
+          "Review the course description and available content assets.",
+          "Mark lessons complete to update progress.",
+          "Open linked assessments and submit attempts.",
+        ]}
+      />
+
       <div className="grid lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-6">
           <div className="flex items-center gap-4 flex-wrap">
@@ -164,9 +214,9 @@ export default function CoursePage() {
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
                     <span className="font-bold">Completion</span>
-                    <span className="font-black text-primary">{enrollment.progress}%</span>
+                    <span className="font-black text-primary">{Math.max(enrollment.progress, calculatedProgress)}%</span>
                   </div>
-                  <Progress value={enrollment.progress} className="h-3 rounded-full" />
+                  <Progress value={Math.max(enrollment.progress, calculatedProgress)} className="h-3 rounded-full" />
                 </div>
                 <Badge className="bg-primary/20 text-primary border-none font-bold capitalize">{enrollment.status}</Badge>
               </div>
@@ -177,6 +227,34 @@ export default function CoursePage() {
 
       {/* Course Content */}
       <div className="space-y-8">
+        <Card className="border-none glass rounded-3xl overflow-hidden">
+          <CardHeader className="bg-muted/20 border-b border-border/10 p-8 pb-4">
+            <h2 className="text-2xl font-black">Modules and Lessons</h2>
+          </CardHeader>
+          <CardContent className="p-8 space-y-4">
+            {lessons.map((lesson) => {
+              const isDone = completedLessons.includes(lesson.id)
+              return (
+                <button
+                  key={lesson.id}
+                  type="button"
+                  onClick={() => toggleLesson(lesson.id)}
+                  className="w-full rounded-2xl border border-border/50 bg-background/40 px-5 py-4 text-left hover:border-primary/40 transition"
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="font-semibold">{lesson.title}</div>
+                    {isDone ? (
+                      <Badge className="bg-emerald-500/10 text-emerald-600 border-none">Completed</Badge>
+                    ) : (
+                      <Badge variant="outline">Mark complete</Badge>
+                    )}
+                  </div>
+                </button>
+              )
+            })}
+          </CardContent>
+        </Card>
+
         <Card className="border-none glass rounded-3xl overflow-hidden">
           <CardHeader className="bg-muted/20 border-b border-border/10 p-8 pb-4">
             <h2 className="text-2xl font-black">Course Content</h2>
@@ -192,6 +270,11 @@ export default function CoursePage() {
                       title={course.title}
                       allowFullScreen
                     />
+                  </div>
+                ) : course.contentType === 'image' || /\.(png|jpg|jpeg|webp|gif)$/i.test(course.contentUrl) ? (
+                  <div className="rounded-2xl overflow-hidden border border-border/40 bg-background/40">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={course.contentUrl} alt={course.title} className="w-full h-auto object-cover" />
                   </div>
                 ) : (
                   <div className="p-8 rounded-2xl border-2 border-dashed border-border/40 flex flex-col items-center justify-center text-center">
@@ -215,6 +298,28 @@ export default function CoursePage() {
             )}
           </CardContent>
         </Card>
+
+        {course.tests && course.tests.length > 0 && (
+          <Card className="border-none glass rounded-3xl overflow-hidden">
+            <CardHeader className="bg-muted/20 border-b border-border/10 p-8 pb-4">
+              <h2 className="text-2xl font-black">Assessments</h2>
+            </CardHeader>
+            <CardContent className="p-8 space-y-3">
+              {course.tests.map((test) => (
+                <Link
+                  key={test.id}
+                  href={`/courses/${course.id}/test/${test.id}`}
+                  className="flex items-center justify-between rounded-2xl border border-border/50 p-4 hover:border-primary/40 hover:bg-primary/5"
+                >
+                  <span className="font-semibold">{test.title}</span>
+                  <span className="inline-flex items-center text-sm font-medium text-primary">
+                    Start <ExternalLink className="ml-2 h-4 w-4" />
+                  </span>
+                </Link>
+              ))}
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   )

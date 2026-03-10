@@ -1,19 +1,21 @@
 import { prisma } from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { BookOpen, Clock } from "lucide-react";
 import Link from "next/link";
+import { TabHelperCard } from "@/components/layout/tab-helper-card";
 
 export default async function CoursesPage() {
-    let courses = [] as any[];
+    type CourseWithRoadmap = Prisma.CourseGetPayload<{ include: { roadmap: true } }>;
+    let courses: CourseWithRoadmap[] = [];
     try {
         courses = await prisma.course.findMany({
             include: { roadmap: true }
         });
     } catch (err) {
-        // DB unavailable — render fallback empty list and log the error
-        // eslint-disable-next-line no-console
+        // DB unavailable — render fallback empty list and log the error.
         console.error('[courses] prisma error:', err);
     }
 
@@ -32,6 +34,16 @@ export default async function CoursesPage() {
             </div>
 
             <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+                <div className="md:col-span-2 lg:col-span-3">
+                    <TabHelperCard
+                        summary="This tab lists all available courses and lets users open detailed learning pages."
+                        points={[
+                            "Compare module difficulty and content type.",
+                            "Open any course card to view details and lessons.",
+                            "Start or continue learning paths from one place.",
+                        ]}
+                    />
+                </div>
                 {courses.map((course) => (
                     <Link href={`/courses/${course.id}`} key={course.id} className="group transition-all duration-500 hover:-translate-y-2 active:scale-95">
                         <Card className="flex flex-col h-full border-none glass-card rounded-[2.5rem] overflow-hidden shadow-2xl shadow-primary/5 group-hover:shadow-primary/10 transition-all duration-500">
