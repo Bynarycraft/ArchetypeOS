@@ -4,7 +4,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import bcrypt from "bcryptjs";
 
-export async function POST() {
+async function seedDatabase() {
   const session = await getServerSession(authOptions);
   const role = session?.user?.role?.toLowerCase();
 
@@ -474,4 +474,12 @@ export async function POST() {
     console.error("Seed error:", error);
     return NextResponse.json({ error: "Failed to seed database", details: String(error) }, { status: 500 });
   }
+}
+
+export async function POST() {
+  return seedDatabase();
+}
+
+export async function GET() {
+  return seedDatabase();
 }
