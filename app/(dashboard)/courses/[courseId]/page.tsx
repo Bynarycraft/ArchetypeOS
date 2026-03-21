@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import { CheckCircle2, Clock, FileText, Video, BookOpen, ExternalLink, Users, AlertCircle } from 'lucide-react'
 import { TabHelperCard } from '@/components/layout/tab-helper-card'
+import { getYouTubeEmbedUrl, getYouTubeWatchUrl } from '@/lib/content-url'
 
 interface Course {
   id: string
@@ -17,10 +18,71 @@ interface Course {
   difficulty: string
   contentUrl: string | null
   contentType: string | null
+  content: string | null
   duration: number | null
   roadmap?: { archetype: string }
   tests?: { id: string; title: string }[]
   _count?: { enrollments: number }
+}
+
+function getSourceMeta(inputUrl: string) {
+  try {
+    const parsed = new URL(inputUrl)
+    return {
+      hostname: parsed.hostname.replace(/^www\./, ''),
+      pathname: parsed.pathname === '/' ? '' : parsed.pathname,
+      origin: parsed.origin,
+    }
+  } catch {
+    return {
+      hostname: inputUrl,
+      pathname: '',
+      origin: inputUrl,
+    }
+  }
+}
+
+function TextContentRenderer({ content }: { content: string }) {
+  const blocks = content.split(/\n\n+/)
+  return (
+    <div className="space-y-4 text-base leading-7">
+      {blocks.map((block, i) => {
+        const firstLine = block.split('\n')[0]
+        if (firstLine.startsWith('## ')) {
+          return (
+            <div key={i}>
+              <h2 className="text-xl font-black text-foreground mt-4 mb-1">{firstLine.slice(3)}</h2>
+              {block.split('\n').slice(1).join(' ').trim() ? (
+                <p className="text-muted-foreground">{block.split('\n').slice(1).join(' ').trim()}</p>
+              ) : null}
+            </div>
+          )
+        }
+        if (firstLine.startsWith('# ')) {
+          return (
+            <div key={i}>
+              <h1 className="text-2xl font-black text-foreground mt-2 mb-1">{firstLine.slice(2)}</h1>
+              {block.split('\n').slice(1).join(' ').trim() ? (
+                <p className="text-muted-foreground">{block.split('\n').slice(1).join(' ').trim()}</p>
+              ) : null}
+            </div>
+          )
+        }
+        const lines = block.split('\n')
+        const isList = lines.every(l => l.startsWith('- ') || l.startsWith('* ') || l.trim() === '')
+        if (isList) {
+          return (
+            <ul key={i} className="list-disc list-inside space-y-1 pl-2">
+              {lines.filter(l => l.startsWith('- ') || l.startsWith('* ')).map((l, j) => (
+                <li key={j} className="text-muted-foreground">{l.slice(2)}</li>
+              ))}
+            </ul>
+          )
+        }
+        return <p key={i} className="text-muted-foreground">{block.replace(/\n/g, ' ')}</p>
+      })}
+    </div>
+  )
 }
 
 interface Enrollment {
@@ -127,6 +189,9 @@ export default function CoursePage() {
 
   if (!course) return <p className="p-4 text-red-500">Course not found</p>
 
+  const youtubeEmbedUrl = course.contentUrl ? getYouTubeEmbedUrl(course.contentUrl) : null
+  const youtubeWatchUrl = course.contentUrl ? getYouTubeWatchUrl(course.contentUrl) : null
+
   const isEnrolled = !!enrollment
   const isCompleted = enrollment?.status === 'completed'
   const difficulty = course.difficulty?.toLowerCase() || 'beginner'
@@ -141,6 +206,87 @@ export default function CoursePage() {
   }
 
   const difficultyColor = getDifficultyColor(difficulty)
+  const sourceMeta = course.contentUrl ? getSourceMeta(course.contentUrl) : null
+
+  const renderSupportingAsset = () => {
+    if (!course?.contentUrl) {
+      return null
+    }
+
+    if (course.contentType === 'video' && youtubeEmbedUrl) {
+      return (
+        <div className="space-y-3">
+          <div className="relative w-full pb-[56.25%] rounded-2xl overflow-hidden bg-black/10">
+            <iframe
+              className="absolute inset-0 w-full h-full"
+              src={youtubeEmbedUrl}
+              title={course.title}
+              allowFullScreen
+            />
+          </div>
+          {youtubeWatchUrl ? (
+            <div className="flex justify-end">
+              <Button variant="outline" onClick={() => window.open(youtubeWatchUrl, '_blank')} className="rounded-xl font-bold">
+                <ExternalLink className="mr-2 h-4 w-4" /> Watch on YouTube
+              </Button>
+            </div>
+          ) : null}
+        </div>
+      )
+    }
+
+    if (course.contentType === 'pdf' && course.contentUrl.startsWith('http')) {
+      return (
+        <div className="space-y-3">
+          <div className="relative w-full rounded-2xl overflow-hidden border border-border/40 bg-background/40" style={{ height: '640px' }}>
+            <iframe
+              src={course.contentUrl}
+              className="w-full h-full"
+              title={course.title}
+            />
+          </div>
+          <div className="flex justify-end">
+            <Button variant="outline" onClick={() => window.open(course.contentUrl || '#', '_blank')} className="rounded-xl font-bold">
+              <FileText className="mr-2 h-4 w-4" /> Open PDF in New Tab
+            </Button>
+          </div>
+        </div>
+      )
+    }
+
+    if (course.contentType === 'image' || /\.(png|jpg|jpeg|webp|gif)$/i.test(course.contentUrl)) {
+      return (
+        <div className="rounded-2xl overflow-hidden border border-border/40 bg-background/40">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={course.contentUrl} alt={course.title} className="w-full h-auto object-cover" />
+        </div>
+      )
+    }
+
+    return (
+      <div className="space-y-4">
+        <div className="rounded-2xl border border-border/40 bg-background/20 px-6 py-5 flex items-center justify-between gap-4">
+          <div className="min-w-0">
+            <h4 className="font-bold">Source material</h4>
+            <p className="text-sm text-muted-foreground">This course links to an external resource. Click the button to open it.</p>
+            {sourceMeta ? (
+              <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                <Badge variant="outline" className="rounded-full border-border/50 bg-background/40 px-3 py-1 font-semibold normal-case">
+                  {sourceMeta.hostname}
+                </Badge>
+                {sourceMeta.pathname ? (
+                  <span className="truncate max-w-[28rem]">{sourceMeta.pathname}</span>
+                ) : null}
+              </div>
+            ) : null}
+          </div>
+          <Button onClick={() => window.open(course.contentUrl || '#', '_blank')} className="rounded-2xl font-bold shrink-0">
+            <ExternalLink className="mr-2 h-4 w-4" /> Open Source
+          </Button>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="max-w-6xl mx-auto space-y-12">
@@ -260,30 +406,23 @@ export default function CoursePage() {
             <h2 className="text-2xl font-black">Course Content</h2>
           </CardHeader>
           <CardContent className="p-8">
-            {course.contentUrl ? (
+            {course.content ? (
               <div className="space-y-4">
-                {course.contentType === 'video' && course.contentUrl.includes('youtube') ? (
-                  <div className="relative w-full pb-[56.25%] rounded-2xl overflow-hidden bg-black/10">
-                    <iframe
-                      className="absolute inset-0 w-full h-full"
-                      src={course.contentUrl.replace('watch?v=', 'embed/').replace('youtu.be/', 'youtube.com/embed/')}
-                      title={course.title}
-                      allowFullScreen
-                    />
-                  </div>
-                ) : course.contentType === 'image' || /\.(png|jpg|jpeg|webp|gif)$/i.test(course.contentUrl) ? (
-                  <div className="rounded-2xl overflow-hidden border border-border/40 bg-background/40">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={course.contentUrl} alt={course.title} className="w-full h-auto object-cover" />
-                  </div>
-                ) : (
+                <div className="rounded-2xl border border-border/40 bg-background/30 px-8 py-7">
+                  <TextContentRenderer content={course.content} />
+                </div>
+                {renderSupportingAsset()}
+              </div>
+            ) : course.contentUrl ? (
+              <div className="space-y-4">
+                {renderSupportingAsset() ?? (
                   <div className="p-8 rounded-2xl border-2 border-dashed border-border/40 flex flex-col items-center justify-center text-center">
                     <div className="mb-4 p-4 rounded-full bg-primary/10">
                       {course.contentType === 'pdf' ? <FileText className="h-8 w-8 text-red-500" /> : course.contentType === 'video' ? <Video className="h-8 w-8 text-blue-500" /> : <BookOpen className="h-8 w-8 text-amber-500" />}
                     </div>
-                    <h4 className="font-bold mb-2">{course.contentType === 'pdf' ? 'PDF Document Available' : course.contentType === 'video' ? 'Video Content' : 'External Resource'}</h4>
-                    {course.contentUrl && (
-                      <Button onClick={() => window.open(course.contentUrl || '#', '_blank')} className="rounded-2xl font-bold">
+                    <h4 className="font-bold mb-2">{course.contentType === 'pdf' ? 'PDF Document' : course.contentType === 'link' ? 'External Resource' : 'Learning Material'}</h4>
+                    {(course.contentType === 'video' ? youtubeWatchUrl : course.contentUrl) && (
+                      <Button onClick={() => window.open((course.contentType === 'video' ? youtubeWatchUrl : course.contentUrl) || '#', '_blank')} className="rounded-2xl font-bold">
                         Open Content
                       </Button>
                     )}
@@ -293,7 +432,7 @@ export default function CoursePage() {
             ) : (
               <div className="p-8 rounded-2xl border-2 border-dashed border-border/40 text-center">
                 <AlertCircle className="h-8 w-8 mx-auto mb-4 text-muted-foreground opacity-50" />
-                <p className="text-muted-foreground">Content not yet available</p>
+                <p className="text-muted-foreground">Content not yet available for this course.</p>
               </div>
             )}
           </CardContent>

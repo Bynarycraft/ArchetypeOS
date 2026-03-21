@@ -202,11 +202,18 @@ export default function AdminCoursesPage() {
                                                 {new Date(course.createdAt).toLocaleDateString()}
                                             </TableCell>
                                             <TableCell className="text-right">
-                                                <Link href={`/courses/${course.id}`}>
-                                                    <Button variant="outline" size="sm" className="rounded-lg font-semibold">
-                                                        View
-                                                    </Button>
-                                                </Link>
+                                                <div className="flex justify-end gap-2">
+                                                    <Link href={`/admin/courses/${course.id}/edit`}>
+                                                        <Button variant="secondary" size="sm" className="rounded-lg font-semibold">
+                                                            Edit
+                                                        </Button>
+                                                    </Link>
+                                                    <Link href={`/courses/${course.id}`}>
+                                                        <Button variant="outline" size="sm" className="rounded-lg font-semibold">
+                                                            View
+                                                        </Button>
+                                                    </Link>
+                                                </div>
                                             </TableCell>
                                         </TableRow>
                                     );

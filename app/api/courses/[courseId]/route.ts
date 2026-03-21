@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { isYouTubeVideoAvailable, normalizeCourseContentUrl } from "@/lib/content-url";
 
 // GET course by ID
 export async function GET(
@@ -58,18 +59,48 @@ export async function PUT(
 ) {
   try {
     const session = await getServerSession(authOptions);
+    const role = session?.user?.role?.toLowerCase();
 
-    if (!session || session.user.role !== "admin") {
+    if (!session || (role !== "admin" && role !== "supervisor")) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 
     const { courseId } = await params;
-    const updates = await request.json();
+    const body = await request.json();
+    const { title, description, difficulty, contentType, contentUrl, content, duration } = body;
+    const normalizedContentUrl = normalizeCourseContentUrl(contentType, contentUrl);
+
+    if (contentType === "video" && contentUrl && !normalizedContentUrl) {
+      return NextResponse.json(
+        { error: "Please provide a valid YouTube link for video courses." },
+        { status: 400 }
+      );
+    }
+
+    if (contentType === "video" && normalizedContentUrl) {
+      const isAvailable = await isYouTubeVideoAvailable(normalizedContentUrl);
+
+      if (!isAvailable) {
+        return NextResponse.json(
+          { error: "This YouTube video is unavailable. Use a public, reachable YouTube URL." },
+          { status: 400 }
+        );
+      }
+    }
 
     const course = await prisma.course.update({
       where: { id: courseId },
-      data: updates,
+      data: {
+        title,
+        description,
+        difficulty,
+        contentType,
+        contentUrl: normalizedContentUrl,
+        content: contentType === "text" ? (content ?? null) : null,
+        duration: typeof duration === "number" ? duration : null,
+      },
     });
+
 
     return NextResponse.json(course);
   } catch (error) {

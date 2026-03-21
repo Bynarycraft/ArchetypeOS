@@ -8,6 +8,7 @@ export async function POST(
     { params }: { params: Promise<{ testId: string }> }
 ) {
     const session = await getServerSession(authOptions);
+    const role = session?.user?.role?.toLowerCase();
     if (!session) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -18,6 +19,10 @@ export async function POST(
         const body = await req.json();
         const { answers } = body; // answers = { "0": 1, "1": 0 } - index based
 
+        if (!answers || (typeof answers !== "object" && !Array.isArray(answers))) {
+            return NextResponse.json({ error: "Invalid answers payload" }, { status: 400 });
+        }
+
         const test = await prisma.test.findUnique({
             where: { id: testId },
             include: { course: true }
@@ -25,6 +30,22 @@ export async function POST(
 
         if (!test) {
             return NextResponse.json({ error: "Assessment not found" }, { status: 404 });
+        }
+
+        if (role !== "admin" && role !== "supervisor") {
+            const enrollment = await prisma.courseEnrollment.findUnique({
+                where: {
+                    userId_courseId: {
+                        userId: session.user.id,
+                        courseId: test.courseId,
+                    },
+                },
+                select: { id: true },
+            });
+
+            if (!enrollment) {
+                return NextResponse.json({ error: "Enroll in this course before submitting this assessment." }, { status: 403 });
+            }
         }
 
         let score = 0;
@@ -79,7 +100,7 @@ export async function POST(
             });
 
             // 4. Update role to learner if candidate passed
-            if (session.user.role === "candidate") {
+            if (role === "candidate") {
                 await prisma.user.update({
                     where: { id: session.user.id },
                     data: { role: "learner" }

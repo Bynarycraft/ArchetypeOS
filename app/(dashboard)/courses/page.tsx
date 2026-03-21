@@ -52,8 +52,8 @@ export default async function CoursesPage() {
                                     <Badge className="bg-primary/20 text-primary border-none px-4 py-1.5 rounded-full font-black tracking-widest uppercase text-[10px]">
                                         {course.roadmap?.archetype || "CORE"}
                                     </Badge>
-                                    <Badge className={`text-[10px] font-black tracking-widest px-4 py-1.5 rounded-full border-none shadow-sm ${course.difficulty === 'BEGINNER' ? 'bg-emerald-500/10 text-emerald-500' :
-                                        course.difficulty === 'INTERMEDIATE' ? 'bg-amber-500/10 text-amber-500' :
+                                    <Badge className={`text-[10px] font-black tracking-widest px-4 py-1.5 rounded-full border-none shadow-sm ${course.difficulty?.toLowerCase() === 'beginner' ? 'bg-emerald-500/10 text-emerald-500' :
+                                        course.difficulty?.toLowerCase() === 'intermediate' ? 'bg-amber-500/10 text-amber-500' :
                                             'bg-rose-500/10 text-rose-500'
                                         }`}>
                                         {course.difficulty}
@@ -76,7 +76,7 @@ export default async function CoursesPage() {
                                     <div className="flex items-center gap-3 text-right">
                                         <div className="flex flex-col">
                                             <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">Est. Time</span>
-                                            <span className="text-[11px] font-bold text-foreground">4h 30m</span>
+                                            <span className="text-[11px] font-bold text-foreground">{course.duration ? `${course.duration}m` : "TBD"}</span>
                                         </div>
                                         <div className="p-2 rounded-xl bg-primary/10 text-primary">
                                             <Clock className="h-4 w-4" />

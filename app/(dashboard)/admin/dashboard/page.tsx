@@ -41,11 +41,19 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (status === "loading") {
+      return;
+    }
+
     if (status === "unauthenticated") {
       router.push("/auth/signin");
+      return;
     }
-    if (session?.user?.role !== "admin") {
+
+    const role = session?.user?.role?.toLowerCase();
+    if (status === "authenticated" && role !== "admin") {
       router.push("/dashboard");
+      return;
     }
   }, [session, status, router]);
 
@@ -70,10 +78,16 @@ export default function AdminDashboard() {
       }
     };
 
-    if (session?.user?.role === "admin") {
+    const role = session?.user?.role?.toLowerCase();
+    if (status === "authenticated" && role === "admin") {
       fetchData();
+      return;
     }
-  }, [session]);
+
+    if (status !== "loading") {
+      setLoading(false);
+    }
+  }, [session, status]);
 
   if (loading) {
     return (
