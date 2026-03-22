@@ -14,25 +14,6 @@ const AdminDashboardCharts = dynamic(
   { ssr: false }
 );
 
-type AnalyticsSummary = {
-  totalLearningMinutes?: number;
-  averageTestScore?: number;
-};
-
-type AdminUser = {
-  id: string;
-  name: string | null;
-  email: string | null;
-  role?: string | null;
-  archetype?: string | null;
-  createdAt: string | Date;
-};
-
-type RoleDistributionItem = {
-  name: string;
-  value: number;
-};
-
 export default function AdminDashboard() {
   type AnalyticsResponse = {
     totalLearningMinutes: number;
@@ -85,8 +66,11 @@ export default function AdminDashboard() {
         ]);
 
         if (analyticsRes.ok) {
-          const analyticsData = (await analyticsRes.json()) as AnalyticsSummary;
-          setAnalytics(analyticsData);
+          const analyticsData = (await analyticsRes.json()) as Partial<AnalyticsResponse>;
+          setAnalytics({
+            totalLearningMinutes: analyticsData.totalLearningMinutes ?? 0,
+            averageTestScore: analyticsData.averageTestScore ?? 0,
+          });
         }
         if (usersRes.ok) {
           const usersData = (await usersRes.json()) as AdminUser[];

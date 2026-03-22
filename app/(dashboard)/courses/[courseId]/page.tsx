@@ -175,6 +175,29 @@ export default function CoursePage() {
     { id: 3, title: 'Complete course assessment' },
   ]
 
+  const handleMarkComplete = async () => {
+    const allLessons = lessons.map((lesson) => lesson.id)
+    setCompletedLessons(allLessons)
+
+    try {
+      const res = await fetch(`/api/courses/${courseId}/progress`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ progress: 100 }),
+      })
+
+      if (res.ok) {
+        const updated = await res.json()
+        setEnrollment(updated)
+      } else {
+        setEnrollment((prev) => prev ? { ...prev, progress: 100, status: 'completed' } : prev)
+      }
+    } catch (err) {
+      console.error('Failed to mark course complete:', err)
+      setEnrollment((prev) => prev ? { ...prev, progress: 100, status: 'completed' } : prev)
+    }
+  }
+
   const completedCount = lessons.filter((lesson) => completedLessons.includes(lesson.id)).length
   const calculatedProgress = Math.round((completedCount / lessons.length) * 100)
 

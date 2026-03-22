@@ -5,9 +5,14 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { BookOpen, Clock } from "lucide-react";
 import Link from "next/link";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 import { TabHelperCard } from "@/components/layout/tab-helper-card";
 
 export default async function CoursesPage() {
+    const session = await getServerSession(authOptions);
+    const role = session?.user?.role?.toLowerCase();
+
     type CourseWithRoadmap = Prisma.CourseGetPayload<{ include: { roadmap: true } }>;
     let courses: CourseWithRoadmap[] = [];
     try {

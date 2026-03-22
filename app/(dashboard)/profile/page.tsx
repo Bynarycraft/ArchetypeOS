@@ -94,9 +94,10 @@ export default async function ProfilePage() {
                             </div>
                         </CardContent>
                     </Card>
+                </div>
 
                 {/* Details */}
-                <Card className="lg:col-span-2">
+                <Card className="lg:col-span-8">
                     <CardHeader>
                         <CardTitle>Account Details</CardTitle>
                     </CardHeader>

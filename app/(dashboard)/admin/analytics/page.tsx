@@ -14,7 +14,8 @@ export default async function AdminAnalyticsPage() {
         redirect("/dashboard");
     }
 
-    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
     const totalUsers = await prisma.user.count();
     const totalCourses = await prisma.course.count();

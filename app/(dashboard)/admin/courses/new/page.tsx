@@ -28,6 +28,7 @@ export default function NewCoursePage() {
         title: "",
         description: "",
         difficulty: "beginner",
+        contentType: "video",
         contentUrl: "",
         content: "",
         duration: "",
@@ -108,6 +109,8 @@ export default function NewCoursePage() {
             </div>
         );
     }
+
+    const authReady = status === "authenticated" && session?.user?.role === "admin";
 
     const handleChange = (
         e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
