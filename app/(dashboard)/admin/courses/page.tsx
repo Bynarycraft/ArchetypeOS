@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Loader2, Plus, BookOpen } from "lucide-react";
+import { TabHelperCard } from "@/components/layout/tab-helper-card";
 
 interface CourseSummary {
     id: string;
@@ -107,6 +108,15 @@ export default function AdminCoursesPage() {
                 </div>
             </div>
 
+            <TabHelperCard
+                summary="This tab is used by admins to maintain the course catalog and inspect usage."
+                points={[
+                    "Create new courses and review existing course entries.",
+                    "Monitor enrollment totals and linked tests.",
+                    "Open course detail pages to validate learner experience.",
+                ]}
+            />
+
             {error ? (
                 <Card className="border-none glass-card">
                     <CardHeader>
@@ -192,11 +202,18 @@ export default function AdminCoursesPage() {
                                                 {new Date(course.createdAt).toLocaleDateString()}
                                             </TableCell>
                                             <TableCell className="text-right">
-                                                <Link href={`/courses/${course.id}`}>
-                                                    <Button variant="outline" size="sm" className="rounded-lg font-semibold">
-                                                        View
-                                                    </Button>
-                                                </Link>
+                                                <div className="flex justify-end gap-2">
+                                                    <Link href={`/admin/courses/${course.id}/edit`}>
+                                                        <Button variant="secondary" size="sm" className="rounded-lg font-semibold">
+                                                            Edit
+                                                        </Button>
+                                                    </Link>
+                                                    <Link href={`/courses/${course.id}`}>
+                                                        <Button variant="outline" size="sm" className="rounded-lg font-semibold">
+                                                            View
+                                                        </Button>
+                                                    </Link>
+                                                </div>
                                             </TableCell>
                                         </TableRow>
                                     );

@@ -1,15 +1,17 @@
 
 export const navConfig = {
     candidate: [
-        { label: "Candidate Home", href: "/candidate", icon: "LayoutDashboard" },
+        { label: "Dashboard", href: "/dashboard", icon: "LayoutDashboard" },
+        { label: "Roadmap", href: "/roadmap", icon: "Map" },
         { label: "Courses", href: "/courses", icon: "BookOpen" },
-        { label: "Feedback", href: "/feedback", icon: "MessageSquare" },
-        { label: "Notifications", href: "/notifications", icon: "Bell" },
+        { label: "Tests", href: "/tests", icon: "ClipboardList" },
+        { label: "Learning Tracker", href: "/tracker", icon: "Clock" },
     ],
     learner: [
         { label: "Dashboard", href: "/dashboard", icon: "LayoutDashboard" },
         { label: "Roadmap", href: "/roadmap", icon: "Map" },
         { label: "Courses", href: "/courses", icon: "BookOpen" },
+        { label: "Tests", href: "/tests", icon: "ClipboardList" },
         { label: "Learning Tracker", href: "/tracker", icon: "Clock" },
         { label: "Reflections", href: "/reflections", icon: "Notebook" },
         { label: "Skill Map", href: "/skills", icon: "Brain" },
@@ -18,9 +20,11 @@ export const navConfig = {
         { label: "Notifications", href: "/notifications", icon: "Bell" },
     ],
     supervisor: [
-        { label: "Supervisor Hub", href: "/supervisor", icon: "LayoutDashboard" },
+        { label: "Dashboard", href: "/dashboard", icon: "LayoutDashboard" },
+        { label: "Grading", href: "/supervisor", icon: "ShieldCheck" },
         { label: "Roadmap", href: "/roadmap", icon: "Map" },
         { label: "Courses", href: "/courses", icon: "BookOpen" },
+        { label: "Tests", href: "/tests", icon: "ClipboardList" },
         { label: "Learning Tracker", href: "/tracker", icon: "Clock" },
         { label: "Reflections Review", href: "/supervisor/reflections", icon: "Notebook" },
         { label: "Skill Map", href: "/skills", icon: "Brain" },
@@ -29,7 +33,12 @@ export const navConfig = {
         { label: "Notifications", href: "/notifications", icon: "Bell" },
     ],
     admin: [
-        { label: "Dashboard", href: "/admin/dashboard", icon: "LayoutDashboard" },
+        { label: "Dashboard", href: "/dashboard", icon: "LayoutDashboard" },
+        { label: "Roadmap", href: "/roadmap", icon: "Map" },
+        { label: "Courses", href: "/courses", icon: "BookOpen" },
+        { label: "Tests", href: "/tests", icon: "ClipboardList" },
+        { label: "Learning Tracker", href: "/tracker", icon: "Clock" },
+        { label: "Admin", href: "/admin/dashboard", icon: "ShieldCheck" },
         { label: "User Management", href: "/admin/users", icon: "Users" },
         { label: "Supervisor Hub", href: "/supervisor", icon: "LayoutDashboard" },
         { label: "Course Management", href: "/admin/courses", icon: "BookOpen" },

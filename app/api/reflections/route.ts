@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
 
@@ -11,66 +11,15 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { searchParams } = new URL(request.url);
-    const requestedUserId = searchParams.get("userId");
-    const role = session.user.role?.toLowerCase();
-
-    let userId = session.user.id;
-    if (requestedUserId && (role === "supervisor" || role === "admin")) {
-      if (role === "supervisor") {
-        const learner = await prisma.user.findUnique({
-          where: { id: requestedUserId },
-          select: { supervisorId: true },
-        });
-
-        if (!learner || learner.supervisorId !== session.user.id) {
-          return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
-        }
-      }
-      userId = requestedUserId;
-    }
-
     const reflections = await prisma.reflection.findMany({
-      where: { userId },
-      include: {
-        learningSession: {
-          select: { id: true, startTime: true, endTime: true, durationMinutes: true },
-        },
-      },
+      where: { userId: session.user.id },
       orderBy: { createdAt: "desc" },
-    });
-
-    const includeComments = searchParams.get("includeComments") === "1";
-    if (!includeComments || reflections.length === 0) {
-      return NextResponse.json(reflections);
-    }
-
-    const reflectionIds = reflections.map((reflection: { id: string }) => reflection.id);
-    const comments = await prisma.feedback.findMany({
-      where: {
-        threadId: { in: reflectionIds },
-        type: "reflection",
-      },
       include: {
-        sender: { select: { id: true, name: true, email: true } },
+        learningSession: true,
       },
-      orderBy: { createdAt: "asc" },
     });
 
-    type CommentRow = typeof comments[number];
-    const commentsByReflection = comments.reduce<Record<string, CommentRow[]>>((acc, comment) => {
-      const key = comment.threadId || "";
-      if (!key) return acc;
-      if (!acc[key]) acc[key] = [];
-      acc[key].push(comment);
-      return acc;
-    }, {});
-
-    const payload = reflections.map((reflection: typeof reflections[number]) => ({
-      ...reflection,
-      comments: commentsByReflection[reflection.id] || [],
-    }));
-    return NextResponse.json(payload);
+    return NextResponse.json(reflections);
   } catch (error) {
     console.error("Get reflections error:", error);
     return NextResponse.json(
@@ -88,34 +37,19 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const body = await request.json();
-    const { learningSessionId, text, mood, courseId } = body || {};
+    const { learningSessionId, text, mood, courseId } = await request.json();
 
     if (!learningSessionId || !text) {
-      return NextResponse.json({ error: "learningSessionId and text are required" }, { status: 400 });
-    }
-
-    const sessionRecord = await prisma.learningSession.findUnique({
-      where: { id: learningSessionId },
-      select: { id: true, userId: true },
-    });
-
-    if (!sessionRecord || sessionRecord.userId !== session.user.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
     const reflection = await prisma.reflection.create({
       data: {
-        userId: session.user.id,
         learningSessionId,
-        text: text.trim(),
-        mood,
-        courseId,
-      },
-      include: {
-        learningSession: {
-          select: { id: true, startTime: true, endTime: true, durationMinutes: true },
-        },
+        text,
+        mood: mood || null,
+        courseId: courseId || null,
+        userId: session.user.id,
       },
     });
 

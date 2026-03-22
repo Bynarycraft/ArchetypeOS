@@ -27,12 +27,17 @@ export async function POST(request: NextRequest) {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Bootstrap rule: the very first account becomes admin.
+    const userCount = await prisma.user.count();
+    const normalizedRole = userCount === 0 ? "admin" : String(role).toLowerCase();
+
     const user = await prisma.user.create({
       data: {
         email,
         name,
         password: hashedPassword,
-        role,
+        role: normalizedRole,
       },
     });
 

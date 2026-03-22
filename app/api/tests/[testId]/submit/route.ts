@@ -8,6 +8,7 @@ export async function POST(
     { params }: { params: Promise<{ testId: string }> }
 ) {
     const session = await getServerSession(authOptions);
+    const role = session?.user?.role?.toLowerCase();
     if (!session) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -18,6 +19,10 @@ export async function POST(
         const body = await req.json();
         const { answers, startedAt } = body; // answers = { "0": 1, "1": 0 } - index based
 
+        if (!answers || (typeof answers !== "object" && !Array.isArray(answers))) {
+            return NextResponse.json({ error: "Invalid answers payload" }, { status: 400 });
+        }
+
         const test = await prisma.test.findUnique({
             where: { id: testId },
             include: { course: true }
@@ -27,7 +32,6 @@ export async function POST(
             return NextResponse.json({ error: "Assessment not found" }, { status: 404 });
         }
 
-        const role = session.user.role?.toLowerCase();
         if (role !== "admin" && role !== "supervisor") {
             const enrollment = await prisma.courseEnrollment.findUnique({
                 where: {
@@ -36,54 +40,31 @@ export async function POST(
                         courseId: test.courseId,
                     },
                 },
+                select: { id: true },
             });
 
             if (!enrollment) {
-                return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+                return NextResponse.json({ error: "Enroll in this course before submitting this assessment." }, { status: 403 });
             }
         }
 
         let score = 0;
         let status: "submitted" | "graded" = "submitted";
         interface Question {
-            correct: number;
+            correct?: number;
+            correctAnswer?: number;
         }
 
-        let questions: Question[] = [];
-        try {
-            questions = JSON.parse(test.questions || "[]") as Question[];
-        } catch (_error) {
-            questions = [];
-        }
-
-        const attemptLimit = test.attemptLimit || 1;
-        const inProgressAttempt = await prisma.testResult.findFirst({
-            where: {
-                testId,
-                userId: session.user.id,
-                status: { in: ["in_progress", "IN_PROGRESS"] },
-            },
-            orderBy: { createdAt: "desc" },
-        });
-        const completedAttempts = await prisma.testResult.count({
-            where: {
-                testId,
-                userId: session.user.id,
-                status: { notIn: ["in_progress", "IN_PROGRESS"] },
-            },
-        });
-
-        if (!inProgressAttempt && completedAttempts >= attemptLimit) {
-            return NextResponse.json({ error: "Attempt limit reached" }, { status: 400 });
-        }
-
-        const attemptNumber = inProgressAttempt?.attemptNumber ?? completedAttempts + 1;
+        const questions: Question[] = typeof test.questions === "string"
+            ? JSON.parse(test.questions)
+            : ((test.questions as unknown as Question[]) || []);
 
         // 1. Grading logic for MCQ
-        if (test.type === "MCQ" && questions.length > 0) {
+        if (test.type.toLowerCase() === "mcq" && questions.length > 0) {
             let correctCount = 0;
             questions.forEach((q, idx) => {
-                if (answers[idx] === q.correct) {
+                const expected = q.correct ?? q.correctAnswer;
+                if (answers[idx] === expected) {
                     correctCount++;
                 }
             });
@@ -94,54 +75,16 @@ export async function POST(
         const passingScore = test.passingScore || 70;
 
         // 2. Save result
-        const result = inProgressAttempt
-            ? await prisma.testResult.update({
-                where: { id: inProgressAttempt.id },
-                data: {
-                    answers: JSON.stringify(answers || {}),
-                    score,
-                    status,
-                    submittedAt: new Date(),
-                    startedAt: inProgressAttempt.startedAt || (startedAt ? new Date(startedAt) : new Date()),
-                },
-            })
-            : await prisma.testResult.create({
-                data: {
-                    testId,
-                    userId: session.user.id,
-                    answers: JSON.stringify(answers || {}),
-                    score,
-                    status,
-                    attemptNumber,
-                    startedAt: startedAt ? new Date(startedAt) : new Date(),
-                    submittedAt: new Date(),
-                }
-            });
-
-        if (session.user.role === "candidate") {
-            const details = {
-                title: status === "graded" ? "Assessment Result" : "Assessment Submitted",
-                message:
-                    status === "graded"
-                        ? score >= passingScore
-                            ? `Passed with ${score}%`
-                            : `Needs improvement: ${score}%`
-                        : "Your assessment is pending review.",
-                priority: status === "graded" && score >= passingScore ? "low" : "normal",
-                createdBy: "system",
-                createdAt: new Date().toISOString(),
-            };
-
-            await prisma.auditLog.create({
-                data: {
-                    userId: session.user.id,
-                    action: "notification",
-                    targetType: "user",
-                    targetId: session.user.id,
-                    details: JSON.stringify(details),
-                },
-            });
-        }
+        const result = await prisma.testResult.create({
+            data: {
+                testId,
+                userId: session.user.id,
+                answers: JSON.stringify(answers),
+                score,
+                status,
+                submittedAt: new Date(),
+            }
+        });
 
         // 3. Logic: If passed, mark course enrollment as "completed"
         if (score >= passingScore) {
@@ -178,7 +121,7 @@ export async function POST(
             }
 
             // 4. Update role to learner if candidate passed
-            if (session.user.role === "candidate") {
+            if (role === "candidate") {
                 await prisma.user.update({
                     where: { id: session.user.id },
                     data: { role: "learner" }

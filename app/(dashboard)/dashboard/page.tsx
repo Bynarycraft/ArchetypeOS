@@ -2,6 +2,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -16,6 +17,7 @@ import {
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
+import { TabHelperCard } from "@/components/layout/tab-helper-card";
 
 export default async function DashboardPage() {
     const session = await getServerSession(authOptions);
@@ -24,7 +26,19 @@ export default async function DashboardPage() {
         redirect("/auth/signin");
     }
 
-    let user;
+    type DashboardUser = Prisma.UserGetPayload<{
+        include: {
+            courseEnrollments: { include: { course: true } };
+            dailyLearningSessions: { orderBy: { startTime: "desc" }; take: 5 };
+            testResults: {
+                include: { test: { include: { course: true } } };
+                orderBy: { submittedAt: "desc" };
+                take: 5;
+            };
+        };
+    }>;
+
+    let user: DashboardUser | null = null;
     try {
         user = await prisma.user.findUnique({
             where: { id: session.user.id },
@@ -48,11 +62,12 @@ export default async function DashboardPage() {
             }
         });
     } catch (err) {
+        // If DB errors occur, show a graceful fallback UI instead of crashing
         console.error('[dashboard] prisma error:', err);
         return (
             <div className="p-12 text-center">
                 <h2 className="text-2xl font-bold">Data currently unavailable</h2>
-                <p className="mt-4 text-muted-foreground">We could not load your dashboard data right now — please try again later.</p>
+                <p className="mt-4 text-muted-foreground">We couldn&apos;t load your dashboard data right now, please try again later.</p>
             </div>
         );
     }
@@ -96,6 +111,15 @@ export default async function DashboardPage() {
             </div>
 
             {/* Stats Overview */}
+            <TabHelperCard
+                summary="This is the learner home screen for quick progress checks and next actions."
+                points={[
+                    "Review current learning hours and completion stats.",
+                    "Open recommended modules based on your archetype.",
+                    "Jump directly into courses or your profile.",
+                ]}
+            />
+
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
                 {[
                     { label: "Archetype", value: archetype || "Unassigned", icon: UserCheck, desc: "Your profile type" },

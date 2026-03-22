@@ -8,69 +8,45 @@ export async function PATCH(
   { params }: { params: Promise<{ courseId: string }> }
 ) {
   const session = await getServerSession(authOptions);
-
   if (!session) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const { courseId } = await params;
+  const body = await req.json();
+  const progress = Number(body.progress);
+
+  if (!Number.isFinite(progress) || progress < 0 || progress > 100) {
+    return NextResponse.json({ error: "Invalid progress value" }, { status: 400 });
+  }
+
+  const status = progress >= 100 ? "completed" : "in_progress";
 
   try {
-    const body = await req.json();
-    const { progress } = body || {};
-
-    if (typeof progress !== "number") {
-      return NextResponse.json({ error: "progress is required" }, { status: 400 });
-    }
-
-    const enrollment = await prisma.courseEnrollment.findUnique({
+    const enrollment = await prisma.courseEnrollment.upsert({
       where: {
         userId_courseId: {
           userId: session.user.id,
           courseId,
         },
       },
-    });
-
-    if (!enrollment) {
-      return NextResponse.json({ error: "Enrollment not found" }, { status: 404 });
-    }
-
-    const normalized = Math.max(0, Math.min(100, progress));
-    const updated = await prisma.courseEnrollment.update({
-      where: { id: enrollment.id },
-      data: {
-        progress: normalized,
-        status: normalized >= 100 ? "completed" : enrollment.status,
-        completedAt: normalized >= 100 ? new Date() : enrollment.completedAt,
+      update: {
+        progress,
+        status,
+        completedAt: progress >= 100 ? new Date() : null,
+      },
+      create: {
+        userId: session.user.id,
+        courseId,
+        progress,
+        status,
+        completedAt: progress >= 100 ? new Date() : null,
       },
     });
 
-    if (normalized >= 100) {
-      const existing = await prisma.auditLog.findFirst({
-        where: {
-          userId: session.user.id,
-          action: "certificate",
-          targetId: courseId,
-        },
-      });
-
-      if (!existing) {
-        await prisma.auditLog.create({
-          data: {
-            userId: session.user.id,
-            action: "certificate",
-            targetType: "course",
-            targetId: courseId,
-            details: "Course completed",
-          },
-        });
-      }
-    }
-
-    return NextResponse.json(updated);
+    return NextResponse.json(enrollment);
   } catch (error) {
-    console.error("Update progress error:", error);
-    return NextResponse.json({ error: "Failed to update progress" }, { status: 500 });
+    console.error("Progress update error:", error);
+    return NextResponse.json({ error: "Failed to update course progress" }, { status: 500 });
   }
 }

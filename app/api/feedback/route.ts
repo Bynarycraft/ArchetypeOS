@@ -3,7 +3,6 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
-// GET feedback for user
 export async function GET(_request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
@@ -12,15 +11,14 @@ export async function GET(_request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const role = session.user.role?.toLowerCase();
     const feedback = await prisma.feedback.findMany({
-      where: {
-        receiverId: session.user.id,
-      },
+      where: role === "admin" ? {} : { receiverId: session.user.id },
       include: {
-        sender: {
+        receiver: {
           select: { id: true, name: true, email: true },
         },
-        receiver: {
+        sender: {
           select: { id: true, name: true, email: true },
         },
       },
@@ -37,7 +35,6 @@ export async function GET(_request: NextRequest) {
   }
 }
 
-// POST create feedback
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
@@ -46,39 +43,24 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const body = await request.json();
-    const {
-      receiverId,
-      courseId,
-      type = "comment",
-      text,
-      rating,
-      isPrivate = false,
-      threadId,
-    } = body || {};
-
-    if (!receiverId || !text) {
-      return NextResponse.json({ error: "receiverId and text are required" }, { status: 400 });
+    const role = session.user.role?.toLowerCase();
+    if (role !== "supervisor" && role !== "admin") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 
-    if (typeof text !== "string" || text.trim().length < 3) {
-      return NextResponse.json({ error: "Feedback text is too short" }, { status: 400 });
+    const { receiverId, text, rating, courseId, type } = await request.json();
+    if (!receiverId || !text) {
+      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
     const feedback = await prisma.feedback.create({
       data: {
         senderId: session.user.id,
         receiverId,
-        courseId,
-        type,
-        text: text.trim(),
-        rating,
-        isPrivate,
-        threadId,
-      },
-      include: {
-        sender: { select: { id: true, name: true, email: true } },
-        receiver: { select: { id: true, name: true, email: true } },
+        text,
+        courseId: courseId || null,
+        rating: Number.isFinite(Number(rating)) ? Number(rating) : null,
+        type: type || "comment",
       },
     });
 

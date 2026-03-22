@@ -81,7 +81,15 @@
 
   body {
     @apply bg-background text-foreground selection:bg-primary selection:text-primary-foreground antialiased;
+    font-family: var(--font-sans), "Segoe UI", sans-serif;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    transition: background-color 240ms ease, color 240ms ease;
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display), var(--font-sans), "Segoe UI", sans-serif;
   }
 }
 

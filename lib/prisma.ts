@@ -3,7 +3,7 @@ import { PrismaClient } from '@prisma/client'
 type GlobalForPrisma = typeof globalThis & { prisma?: PrismaClient }
 const globalForPrisma = globalThis as GlobalForPrisma
 
-function createPrismaClient() {
+function createPrismaClient(): PrismaClient {
 	try {
 		return new PrismaClient()
 	} catch (err) {

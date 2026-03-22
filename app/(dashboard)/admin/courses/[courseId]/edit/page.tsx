@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import {
     Card,
@@ -14,26 +14,100 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { TabHelperCard } from "@/components/layout/tab-helper-card";
 import { getYouTubeEmbedUrl } from "@/lib/content-url";
 
-export default function NewCoursePage() {
+type CourseFormState = {
+    title: string;
+    description: string;
+    difficulty: string;
+    contentType: string;
+    contentUrl: string;
+    content: string;
+    duration: string;
+};
+
+export default function EditCoursePage() {
     const { data: session, status } = useSession();
     const router = useRouter();
-    const [loading, setLoading] = useState(false);
+    const params = useParams<{ courseId: string }>();
+    const courseId = params?.courseId;
+
+    const [loadingCourse, setLoadingCourse] = useState(true);
+    const [saving, setSaving] = useState(false);
     const [submitError, setSubmitError] = useState<string | null>(null);
-    const [formData, setFormData] = useState({
+    const [formData, setFormData] = useState<CourseFormState>({
         title: "",
         description: "",
         difficulty: "beginner",
+        contentType: "video",
         contentUrl: "",
         content: "",
         duration: "",
     });
     const [videoValidationStatus, setVideoValidationStatus] = useState<"idle" | "checking" | "valid" | "invalid">("idle");
     const [videoValidationMessage, setVideoValidationMessage] = useState<string>("");
+
+    useEffect(() => {
+        if (status === "unauthenticated") {
+            router.push("/auth/signin");
+            return;
+        }
+
+        const role = session?.user?.role?.toLowerCase();
+        if (status === "authenticated" && role !== "admin") {
+            router.push("/dashboard");
+        }
+    }, [status, session, router]);
+
+    useEffect(() => {
+        const role = session?.user?.role?.toLowerCase();
+        if (!courseId || status !== "authenticated" || role !== "admin") {
+            if (status !== "loading") {
+                setLoadingCourse(false);
+            }
+            return;
+        }
+
+        const loadCourse = async () => {
+            setLoadingCourse(true);
+            setSubmitError(null);
+
+            try {
+                const response = await fetch(`/api/courses/${courseId}`);
+                if (!response.ok) {
+                    const data = await response.json().catch(() => ({ error: "Failed to load course" }));
+                    throw new Error(data.error || "Failed to load course");
+                }
+
+                const course = await response.json();
+                setFormData({
+                    title: course.title ?? "",
+                    description: course.description ?? "",
+                    difficulty: course.difficulty ?? "beginner",
+                    contentType: course.contentType ?? "video",
+                    contentUrl: course.contentUrl ?? "",
+                    content: course.content ?? "",
+                    duration: typeof course.duration === "number" ? String(course.duration) : "",
+                });
+            } catch (error) {
+                console.error("Failed to load course:", error);
+                setSubmitError(error instanceof Error ? error.message : "Failed to load course");
+            } finally {
+                setLoadingCourse(false);
+            }
+        };
+
+        loadCourse();
+    }, [courseId, status, session]);
 
     useEffect(() => {
         let canceled = false;
@@ -90,25 +164,6 @@ export default function NewCoursePage() {
         };
     }, [formData.contentType, formData.contentUrl]);
 
-    useEffect(() => {
-        if (status === "unauthenticated") {
-            router.push("/auth/signin");
-            return;
-        }
-
-        if (status === "authenticated" && session?.user?.role !== "admin") {
-            router.push("/dashboard");
-        }
-    }, [status, session, router]);
-
-    if (status === "loading") {
-        return (
-            <div className="flex min-h-[60vh] items-center justify-center">
-                <Loader2 className="h-8 w-8 animate-spin" />
-            </div>
-        );
-    }
-
     const handleChange = (
         e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
     ) => {
@@ -116,64 +171,63 @@ export default function NewCoursePage() {
         setFormData((prev) => ({ ...prev, [name]: value }));
     };
 
-    const handleSelectChange = (name: string, value: string) => {
+    const handleSelectChange = (name: keyof CourseFormState, value: string) => {
         setFormData((prev) => ({ ...prev, [name]: value }));
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        setLoading(true);
+        setSaving(true);
         setSubmitError(null);
 
         if (formData.contentType === "video" && formData.contentUrl && !getYouTubeEmbedUrl(formData.contentUrl)) {
             setSubmitError("Use a valid YouTube link for video courses. Supported formats include youtube.com/watch and youtu.be links.");
-            setLoading(false);
+            setSaving(false);
             return;
         }
 
         if (formData.contentType === "video" && formData.contentUrl.trim() && videoValidationStatus !== "valid") {
-            setSubmitError("Use a public, reachable YouTube video before creating the course.");
-            setLoading(false);
+            setSubmitError("Use a public, reachable YouTube video before saving changes.");
+            setSaving(false);
             return;
         }
 
         try {
-            const res = await fetch("/api/courses", {
-                method: "POST",
+            const res = await fetch(`/api/courses/${courseId}`, {
+                method: "PUT",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     ...formData,
                     content: formData.contentType === "text" ? formData.content : undefined,
-                    duration: formData.duration ? parseInt(formData.duration) : null,
+                    duration: formData.duration ? parseInt(formData.duration, 10) : null,
                 }),
             });
 
-            if (res.ok) {
-                await res.json();
-                router.push("/admin/courses");
-            } else {
-                const data = await res.json().catch(() => ({ error: "Failed to create course" }));
-                setSubmitError(data.error || "Failed to create course");
+            if (!res.ok) {
+                const data = await res.json().catch(() => ({ error: "Failed to update course" }));
+                setSubmitError(data.error || "Failed to update course");
+                return;
             }
+
+            router.push("/admin/courses");
         } catch (error) {
-            console.error("Error creating course:", error);
-            setSubmitError("Error creating course");
+            console.error("Error updating course:", error);
+            setSubmitError("Error updating course");
         } finally {
-            setLoading(false);
+            setSaving(false);
         }
     };
 
+    if (status === "loading" || loadingCourse) {
+        return (
+            <div className="flex min-h-[60vh] items-center justify-center">
+                <Loader2 className="h-8 w-8 animate-spin" />
+            </div>
+        );
+    }
+
     return (
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-8 duration-1000">
-            {!authReady && (
-                <div className="flex min-h-[40vh] items-center justify-center">
-                    <Loader2 className="h-8 w-8 animate-spin" />
-                </div>
-            )}
-
-            {authReady && (
-                <>
-            {/* Navigation */}
             <Link
                 href="/admin/courses"
                 className="inline-flex items-center gap-3 text-sm font-bold text-muted-foreground hover:text-primary transition-all group w-fit"
@@ -184,31 +238,29 @@ export default function NewCoursePage() {
                 Back to Courses
             </Link>
 
-            {/* Header */}
             <div className="pb-8 border-b border-border/10">
                 <h1 className="text-5xl font-black tracking-tight text-gradient">
-                    Create New Course
+                    Edit Course
                 </h1>
                 <p className="text-muted-foreground mt-2 text-xl font-medium">
-                    Add a new course to your learning library. Fill in the details below.
+                    Update course details, including the resource URL used for learner previews.
                 </p>
             </div>
 
             <TabHelperCard
-                summary="This tab creates new course entries that appear in the learner and admin course views."
+                summary="This tab updates existing course records so learners see the correct content and metadata."
                 points={[
-                    "Define title, difficulty, and content type.",
-                    "Provide links or references for learning materials.",
-                    "Save course data for immediate catalog availability.",
+                    "Refresh titles, descriptions, and difficulty settings.",
+                    "Replace broken or outdated resource links without reseeding data.",
+                    "Keep video courses pointed at valid YouTube URLs for preview embeds.",
                 ]}
             />
 
-            {/* Form */}
             <Card className="border-none glass-card rounded-3xl shadow-2xl shadow-primary/5 max-w-3xl">
                 <CardHeader className="p-8 pb-4">
                     <CardTitle className="text-2xl font-black">Course Details</CardTitle>
                     <CardDescription>
-                        Provide comprehensive information about your course
+                        Update the course information below.
                     </CardDescription>
                 </CardHeader>
 
@@ -220,7 +272,6 @@ export default function NewCoursePage() {
                             </div>
                         ) : null}
 
-                        {/* Title */}
                         <div className="space-y-2">
                             <Label htmlFor="title" className="text-sm font-bold">
                                 Course Title *
@@ -236,7 +287,6 @@ export default function NewCoursePage() {
                             />
                         </div>
 
-                        {/* Description */}
                         <div className="space-y-2">
                             <Label htmlFor="description" className="text-sm font-bold">
                                 Course Description
@@ -252,7 +302,6 @@ export default function NewCoursePage() {
                             />
                         </div>
 
-                        {/* Difficulty */}
                         <div className="space-y-2">
                             <Label htmlFor="difficulty" className="text-sm font-bold">
                                 Difficulty Level *
@@ -274,7 +323,6 @@ export default function NewCoursePage() {
                             </Select>
                         </div>
 
-                        {/* Content Type */}
                         <div className="space-y-2">
                             <Label htmlFor="contentType" className="text-sm font-bold">
                                 Content Type *
@@ -298,18 +346,16 @@ export default function NewCoursePage() {
                             </Select>
                         </div>
 
-                        {/* Content URL */}
                         <div className="space-y-2">
                             <Label htmlFor="contentUrl" className="text-sm font-bold">
-                                YouTube URL *
+                                Content URL
                             </Label>
                             <Input
                                 id="contentUrl"
                                 name="contentUrl"
-                                placeholder="https://www.youtube.com/watch?v=..."
+                                placeholder="https://example.com/video or path to resource..."
                                 value={formData.contentUrl}
                                 onChange={handleChange}
-                                required
                                 className="rounded-xl h-10 border-border/40 focus:border-primary"
                             />
                             {formData.contentType === "video" ? (
@@ -352,7 +398,6 @@ export default function NewCoursePage() {
                             </div>
                         ) : null}
 
-                        {/* Duration */}
                         <div className="space-y-2">
                             <Label htmlFor="duration" className="text-sm font-bold">
                                 Duration (minutes)
@@ -368,7 +413,6 @@ export default function NewCoursePage() {
                             />
                         </div>
 
-                        {/* Actions */}
                         <div className="flex gap-4 pt-6 border-t border-border/10">
                             <Link href="/admin/courses" className="flex-1">
                                 <Button
@@ -381,24 +425,22 @@ export default function NewCoursePage() {
                             </Link>
                             <Button
                                 type="submit"
-                                disabled={loading || !formData.title || videoValidationStatus === "checking" || (formData.contentType === "video" && !!formData.contentUrl.trim() && videoValidationStatus === "invalid")}
+                                disabled={saving || !formData.title || videoValidationStatus === "checking" || (formData.contentType === "video" && !!formData.contentUrl.trim() && videoValidationStatus === "invalid")}
                                 className="flex-1 rounded-xl bg-primary hover:bg-primary/90 shadow-xl shadow-primary/30 font-bold text-primary-foreground"
                             >
-                                {loading ? (
+                                {saving ? (
                                     <>
                                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                        Creating...
+                                        Saving...
                                     </>
                                 ) : (
-                                    "Create Course"
+                                    "Save Changes"
                                 )}
                             </Button>
                         </div>
                     </form>
                 </CardContent>
             </Card>
-                </>
-            )}
         </div>
     );
 }

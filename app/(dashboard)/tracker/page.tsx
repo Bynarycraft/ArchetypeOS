@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Play, Square, Timer, Target, CheckCircle2, TrendingUp, Briefcase } from "lucide-react";
 import { toast } from "sonner";
+import { TabHelperCard } from "@/components/layout/tab-helper-card";
 
 export default function TrackerPage() {
     const [status, setStatus] = useState<"idle" | "running" | "paused">("idle");
@@ -143,6 +144,16 @@ export default function TrackerPage() {
             </div>
 
             <div className="grid gap-10 md:grid-cols-12">
+                <div className="md:col-span-12">
+                    <TabHelperCard
+                        summary="This tab records focused learning sessions and reflections for daily progress tracking."
+                        points={[
+                            "Start and stop timed study sessions.",
+                            "Add reflection notes before saving a session.",
+                            "Monitor your total minutes and completed sessions today.",
+                        ]}
+                    />
+                </div>
                 <div className="md:col-span-8 space-y-8">
                     <Card className="border-none glass-card rounded-[3rem] overflow-hidden shadow-3xl">
                         <CardHeader className="p-10 pb-2 text-center">

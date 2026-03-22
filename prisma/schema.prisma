@@ -122,6 +122,7 @@ model Course {
   moduleId    String?
   contentType String
   contentUrl  String?
+  content     String?
   duration    Int?
   version     String             @default("1.0")
   createdBy   String?

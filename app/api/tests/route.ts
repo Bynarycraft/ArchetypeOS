@@ -6,13 +6,35 @@ import { prisma } from "@/lib/prisma";
 // GET all tests or filter by course
 export async function GET(request: NextRequest) {
   try {
+    const session = await getServerSession(authOptions);
+    const role = session?.user?.role?.toLowerCase();
+
+    if (!session) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const { searchParams } = new URL(request.url);
     const courseId = searchParams.get("courseId");
 
+    const where = courseId ? { courseId } : {};
+    const canViewAllResults = role === "admin" || role === "supervisor";
+
     const tests = await prisma.test.findMany({
-      where: courseId ? { courseId } : {},
+      where,
       include: {
-        results: true,
+        course: {
+          select: { id: true, title: true },
+        },
+        results: {
+          where: canViewAllResults ? undefined : { userId: session.user.id },
+          include: canViewAllResults
+            ? {
+                user: {
+                  select: { name: true, email: true },
+                },
+              }
+            : undefined,
+        },
       },
     });
 
@@ -30,8 +52,9 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
+    const role = session?.user?.role?.toLowerCase();
 
-    if (!session || session.user.role !== "admin") {
+    if (!session || role !== "admin") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 

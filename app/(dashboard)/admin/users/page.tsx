@@ -27,6 +27,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Loader2, Pencil } from "lucide-react";
 import { toast } from "sonner"; // Assuming sonner is installed as per previous steps
+import { TabHelperCard } from "@/components/layout/tab-helper-card";
 
 type User = {
     id: string;
@@ -112,6 +113,15 @@ export default function AdminUsersPage() {
                 <Badge variant="outline">{users.length} Users</Badge>
             </div>
 
+            <TabHelperCard
+                summary="This tab lets admins manage users, roles, and archetype alignment from one screen."
+                points={[
+                    "Review all registered users and current access level.",
+                    "Promote or adjust roles across candidate, learner, supervisor, and admin.",
+                    "Assign archetypes for clearer learning path targeting.",
+                ]}
+            />
+
             <div className="rounded-md border">
                 <Table>
                     <TableHeader>
@@ -130,7 +140,7 @@ export default function AdminUsersPage() {
                                 <TableCell>{user.email}</TableCell>
                                 <TableCell>
                                     <Badge variant={user.role === 'admin' ? 'destructive' : 'secondary'}>
-                                        {user.role?.toUpperCase()}
+                                        {user.role}
                                     </Badge>
                                 </TableCell>
                                 <TableCell>{user.archetype}</TableCell>
@@ -169,7 +179,7 @@ export default function AdminUsersPage() {
                                                 <div className="space-y-2">
                                                     <label className="text-sm font-medium">Role</label>
                                                     <Select
-                                                        defaultValue={user.role}
+                                                        value={editingUser?.id === user.id ? editingUser.role : user.role}
                                                         onValueChange={(val) => handleUpdate(user.id, { role: val })}
                                                     >
                                                         <SelectTrigger>
@@ -187,7 +197,7 @@ export default function AdminUsersPage() {
                                                 <div className="space-y-2">
                                                     <label className="text-sm font-medium">Archetype</label>
                                                     <Select
-                                                        defaultValue={user.archetype}
+                                                        value={editingUser?.id === user.id ? (editingUser.archetype || "NONE") : (user.archetype || "NONE")}
                                                         onValueChange={(val) => handleUpdate(user.id, { archetype: val })}
                                                     >
                                                         <SelectTrigger>
