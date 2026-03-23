@@ -111,10 +111,6 @@ export default function SignInPage() {
                     </form>
                 </Card>
 
-                <div className="text-center text-xs text-muted-foreground space-y-1">
-                    <p>Demo accounts (password: <code className="bg-muted px-1 rounded">password123</code>)</p>
-                    <p>admin@archetypeos.com · supervisor@archetypeos.com · alice@archetypeos.com</p>
-                </div>
             </div>
         </div>
     );
