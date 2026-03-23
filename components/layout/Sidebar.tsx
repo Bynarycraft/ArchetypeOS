@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { navConfig } from "@/config/nav";
 import { ModeToggle } from "@/components/theme-toggle";
-import { LayoutDashboard, BookOpen, Users, BarChart3, Clock, Map, ClipboardList, ShieldCheck, Menu } from "lucide-react";
+import { LayoutDashboard, BookOpen, Users, BarChart3, Clock, Map, ClipboardList, ShieldCheck, Menu, Notebook, Brain, Award, MessageSquare, Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 
@@ -16,6 +16,11 @@ const iconMap = {
     Map,
     ClipboardList,
     ShieldCheck,
+    Notebook,
+    Brain,
+    Award,
+    MessageSquare,
+    Bell,
 };
 
 import { SignOutButton } from "@/components/auth/sign-out-button";
@@ -47,6 +52,14 @@ export async function Sidebar() {
         "/admin/users": "Manage users, roles, and archetypes.",
         "/admin/courses": "Create and manage course content.",
         "/admin/analytics": "Review platform usage analytics.",
+        "/admin/tests": "Create and manage assessment banks.",
+        "/admin/skills": "Search and map organization skills.",
+        "/reflections": "Capture learning reflections and insights.",
+        "/supervisor/reflections": "Review learner reflections and coach.",
+        "/skills": "Explore skill gaps and strengths.",
+        "/certificates": "View earned and available certificates.",
+        "/feedback": "Read and share performance feedback.",
+        "/notifications": "Track system and learning updates.",
     };
 
     const renderNav = () => (
