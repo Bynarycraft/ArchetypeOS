@@ -25,6 +25,9 @@ const iconMap = {
 
 import { SignOutButton } from "@/components/auth/sign-out-button";
 
+type NavItem = { href: string; label: string; icon: string };
+type NavSection = { title: string; items: NavItem[] };
+
 export async function Sidebar() {
     const session = await getServerSession(authOptions);
 
@@ -62,9 +65,47 @@ export async function Sidebar() {
         "/notifications": "Track system and learning updates.",
     };
 
+    const buildSections = (role: string, navItems: NavItem[]): NavSection[] => {
+        if (role === "admin") {
+            return [
+                { title: "Core", items: navItems.filter((i) => ["/dashboard", "/roadmap", "/courses", "/tests", "/tracker"].includes(i.href)) },
+                { title: "Management", items: navItems.filter((i) => ["/admin/dashboard", "/admin/users", "/admin/courses", "/admin/tests", "/admin/analytics", "/supervisor"].includes(i.href)) },
+                { title: "Tools", items: navItems.filter((i) => ["/skills", "/admin/skills", "/certificates", "/feedback", "/notifications"].includes(i.href)) },
+            ].filter((section) => section.items.length > 0);
+        }
+
+        if (role === "supervisor") {
+            return [
+                { title: "Core", items: navItems.filter((i) => ["/dashboard", "/supervisor", "/roadmap", "/courses", "/tests", "/tracker"].includes(i.href)) },
+                { title: "Coaching", items: navItems.filter((i) => ["/supervisor/reflections", "/skills", "/feedback", "/notifications", "/certificates"].includes(i.href)) },
+            ].filter((section) => section.items.length > 0);
+        }
+
+        if (role === "learner") {
+            return [
+                { title: "Learn", items: navItems.filter((i) => ["/dashboard", "/roadmap", "/courses", "/tests", "/tracker"].includes(i.href)) },
+                { title: "Growth", items: navItems.filter((i) => ["/reflections", "/skills", "/certificates", "/feedback", "/notifications"].includes(i.href)) },
+            ].filter((section) => section.items.length > 0);
+        }
+
+        if (role === "candidate") {
+            return [
+                { title: "Core", items: navItems },
+            ];
+        }
+
+        return [{ title: "Navigation", items: navItems }];
+    };
+
+    const sections = buildSections(session.user.role, items as NavItem[]);
+
     const renderNav = () => (
-        <nav className="flex-1 space-y-2">
-            {items.map((item: { href: string; label: string; icon: string }) => {
+        <nav className="flex-1 space-y-5 overflow-y-auto pr-1">
+            {sections.map((section) => (
+                <div key={section.title} className="space-y-2">
+                    <p className="px-4 text-[10px] font-black uppercase tracking-[0.18em] text-muted-foreground/80">{section.title}</p>
+                    <div className="space-y-1.5">
+                        {section.items.map((item) => {
                 const Icon = iconMap[item.icon as keyof typeof iconMap];
                 return (
                     <Link
@@ -83,7 +124,10 @@ export async function Sidebar() {
                         <div className="absolute inset-0 bg-gradient-to-r from-primary/0 to-primary/0 group-hover:to-primary/5 transition-all duration-500" />
                     </Link>
                 );
-            })}
+                        })}
+                    </div>
+                </div>
+            ))}
         </nav>
     );
 
