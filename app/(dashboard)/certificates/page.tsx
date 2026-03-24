@@ -1,16 +1,22 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Award } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Award, Download, ShieldCheck } from "lucide-react";
 import { PageHeader } from "@/components/layout/page-header";
 import { EmptyState } from "@/components/layout/empty-state";
 import { LoadingCard } from "@/components/layout/loading-skeleton";
 
 type CertificateItem = {
   id: string;
-  timestamp: string;
+  issuedAt: string;
   targetId: string | null;
+  courseTitle: string;
+  certificateNumber: string;
+  verificationUrl: string;
+  downloadUrl: string;
   details?: string | null;
 };
 
@@ -65,8 +71,22 @@ export default function CertificatesPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="text-sm text-muted-foreground space-y-2">
-                <div>Issued: {new Date(item.timestamp).toLocaleString()}</div>
+                <div className="font-semibold text-foreground">{item.courseTitle}</div>
+                <div>Issued: {new Date(item.issuedAt).toLocaleString()}</div>
+                <div>Certificate No: {item.certificateNumber}</div>
                 {item.details && <div>Details: {item.details}</div>}
+                <div className="pt-2 flex flex-wrap gap-2">
+                  <Button asChild size="sm" variant="outline" className="rounded-xl">
+                    <Link href={item.verificationUrl} target="_blank">
+                      <ShieldCheck className="mr-2 h-4 w-4" /> Verify
+                    </Link>
+                  </Button>
+                  <Button asChild size="sm" className="rounded-xl">
+                    <a href={item.downloadUrl}>
+                      <Download className="mr-2 h-4 w-4" /> Download PDF
+                    </a>
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           ))}
