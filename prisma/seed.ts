@@ -142,60 +142,175 @@ async function main() {
 
   console.log('✓ Created archetypes')
 
-  // Create Roadmap
-  const roadmap = await prisma.roadmap.upsert({
-    where: { id: 'roadmap-1' },
-    update: {},
-    create: {
-      id: 'roadmap-1',
-      name: 'Full Stack Development',
+  // Create Roadmaps (one dedicated path per supported archetype)
+  const makerRoadmap = await prisma.roadmap.upsert({
+    where: { id: 'roadmap-maker' },
+    update: {
+      name: 'Maker Implementation Path',
       archetype: 'Maker',
-      description: 'Complete full-stack web development learning path'
+      description: 'Hands-on build path focused on implementation and shipping features'
+    },
+    create: {
+      id: 'roadmap-maker',
+      name: 'Maker Implementation Path',
+      archetype: 'Maker',
+      description: 'Hands-on build path focused on implementation and shipping features'
     }
   })
-  console.log('✓ Created roadmap')
+
+  const architectRoadmap = await prisma.roadmap.upsert({
+    where: { id: 'roadmap-architect' },
+    update: {
+      name: 'Architect Systems Path',
+      archetype: 'Architect',
+      description: 'Systems, scalability, and design decisions for long-term platform health'
+    },
+    create: {
+      id: 'roadmap-architect',
+      name: 'Architect Systems Path',
+      archetype: 'Architect',
+      description: 'Systems, scalability, and design decisions for long-term platform health'
+    }
+  })
+
+  const catalystRoadmap = await prisma.roadmap.upsert({
+    where: { id: 'roadmap-catalyst' },
+    update: {
+      name: 'Catalyst Product Path',
+      archetype: 'Catalyst',
+      description: 'Leadership, enablement, and product-focused execution for change agents'
+    },
+    create: {
+      id: 'roadmap-catalyst',
+      name: 'Catalyst Product Path',
+      archetype: 'Catalyst',
+      description: 'Leadership, enablement, and product-focused execution for change agents'
+    }
+  })
+
+  console.log('✓ Created archetype roadmaps')
 
   // Create Modules
-  const module1 = await prisma.module.upsert({
-    where: { id: 'module-1' },
-    update: {},
+  const makerModuleFoundation = await prisma.module.upsert({
+    where: { id: 'module-maker-1' },
+    update: {
+      roadmapId: makerRoadmap.id,
+      name: 'Frontend Foundations',
+      description: 'UI fundamentals, component systems, and client-side engineering',
+      order: 1
+    },
     create: {
-      id: 'module-1',
-      roadmapId: roadmap.id,
-      name: 'Frontend Fundamentals',
-      description: 'HTML, CSS, JavaScript basics',
+      id: 'module-maker-1',
+      roadmapId: makerRoadmap.id,
+      name: 'Frontend Foundations',
+      description: 'UI fundamentals, component systems, and client-side engineering',
       order: 1
     }
   })
 
-  const module2 = await prisma.module.upsert({
-    where: { id: 'module-2' },
-    update: {},
+  const makerModuleDelivery = await prisma.module.upsert({
+    where: { id: 'module-maker-2' },
+    update: {
+      roadmapId: makerRoadmap.id,
+      name: 'Backend and Delivery',
+      description: 'API engineering, quality practices, and delivery readiness',
+      order: 2
+    },
     create: {
-      id: 'module-2',
-      roadmapId: roadmap.id,
-      name: 'Backend Development',
-      description: 'Node.js and API development',
+      id: 'module-maker-2',
+      roadmapId: makerRoadmap.id,
+      name: 'Backend and Delivery',
+      description: 'API engineering, quality practices, and delivery readiness',
       order: 2
     }
   })
 
-  console.log('✓ Created modules')
+  const architectModuleData = await prisma.module.upsert({
+    where: { id: 'module-architect-1' },
+    update: {
+      roadmapId: architectRoadmap.id,
+      name: 'Data and Persistence',
+      description: 'Relational modeling, data integrity, and performance under scale',
+      order: 1
+    },
+    create: {
+      id: 'module-architect-1',
+      roadmapId: architectRoadmap.id,
+      name: 'Data and Persistence',
+      description: 'Relational modeling, data integrity, and performance under scale',
+      order: 1
+    }
+  })
+
+  const architectModuleScale = await prisma.module.upsert({
+    where: { id: 'module-architect-2' },
+    update: {
+      roadmapId: architectRoadmap.id,
+      name: 'Distributed Systems',
+      description: 'Tradeoffs, architecture patterns, and reliability strategy',
+      order: 2
+    },
+    create: {
+      id: 'module-architect-2',
+      roadmapId: architectRoadmap.id,
+      name: 'Distributed Systems',
+      description: 'Tradeoffs, architecture patterns, and reliability strategy',
+      order: 2
+    }
+  })
+
+  const catalystModuleDesign = await prisma.module.upsert({
+    where: { id: 'module-catalyst-1' },
+    update: {
+      roadmapId: catalystRoadmap.id,
+      name: 'Design and Experience',
+      description: 'Systematic UX patterns, clarity, and design consistency',
+      order: 1
+    },
+    create: {
+      id: 'module-catalyst-1',
+      roadmapId: catalystRoadmap.id,
+      name: 'Design and Experience',
+      description: 'Systematic UX patterns, clarity, and design consistency',
+      order: 1
+    }
+  })
+
+  const catalystModuleLeadership = await prisma.module.upsert({
+    where: { id: 'module-catalyst-2' },
+    update: {
+      roadmapId: catalystRoadmap.id,
+      name: 'Leadership and Change',
+      description: 'Product discovery, facilitation, and stakeholder alignment',
+      order: 2
+    },
+    create: {
+      id: 'module-catalyst-2',
+      roadmapId: catalystRoadmap.id,
+      name: 'Leadership and Change',
+      description: 'Product discovery, facilitation, and stakeholder alignment',
+      order: 2
+    }
+  })
+
+  console.log('✓ Created archetype modules')
 
   // Create Courses
   const course1 = await prisma.course.upsert({
     where: { id: 'course-1' },
     update: {
       contentType: 'video',
-      contentUrl: 'https://www.youtube.com/watch?v=Ke90Tje7VS0'
+      contentUrl: 'https://www.youtube.com/watch?v=Ke90Tje7VS0',
+      roadmapId: makerRoadmap.id,
+      moduleId: makerModuleFoundation.id
     },
     create: {
       id: 'course-1',
       title: 'React Fundamentals',
       description: 'Master the core concepts of React. Learn about components, JSX, state, props, and hooks in this comprehensive beginner course. Build your first interactive web applications with React.',
       difficulty: 'beginner',
-      roadmapId: roadmap.id,
-      moduleId: module1.id,
+      roadmapId: makerRoadmap.id,
+      moduleId: makerModuleFoundation.id,
       contentType: 'video',
       contentUrl: 'https://www.youtube.com/watch?v=Ke90Tje7VS0',
       duration: 120,
@@ -207,15 +322,17 @@ async function main() {
     where: { id: 'course-2' },
     update: {
       contentType: 'video',
-      contentUrl: 'https://www.youtube.com/watch?v=bMknfKXIFA8'
+      contentUrl: 'https://www.youtube.com/watch?v=bMknfKXIFA8',
+      roadmapId: makerRoadmap.id,
+      moduleId: makerModuleFoundation.id
     },
     create: {
       id: 'course-2',
       title: 'Advanced React Patterns',
       description: 'Take your React skills to the next level. Explore advanced patterns like render props, custom hooks, context API, and performance optimization techniques. Perfect for developers who already know React basics.',
       difficulty: 'advanced',
-      roadmapId: roadmap.id,
-      moduleId: module1.id,
+      roadmapId: makerRoadmap.id,
+      moduleId: makerModuleFoundation.id,
       contentType: 'video',
       contentUrl: 'https://www.youtube.com/watch?v=bMknfKXIFA8',
       duration: 180,
@@ -227,15 +344,17 @@ async function main() {
     where: { id: 'course-3' },
     update: {
       contentType: 'video',
-      contentUrl: 'https://www.youtube.com/watch?v=Oe421EPjeBE'
+      contentUrl: 'https://www.youtube.com/watch?v=Oe421EPjeBE',
+      roadmapId: makerRoadmap.id,
+      moduleId: makerModuleDelivery.id
     },
     create: {
       id: 'course-3',
       title: 'Node.js & Express Fundamentals',
       description: 'Build scalable backend applications with Node.js and Express. Learn about routing, middleware, databases, authentication, and deployment. This course is essential for full-stack developers.',
       difficulty: 'intermediate',
-      roadmapId: roadmap.id,
-      moduleId: module2.id,
+      roadmapId: makerRoadmap.id,
+      moduleId: makerModuleDelivery.id,
       contentType: 'video',
       contentUrl: 'https://www.youtube.com/watch?v=Oe421EPjeBE',
       duration: 150,
@@ -247,15 +366,17 @@ async function main() {
     where: { id: 'course-4' },
     update: {
       contentType: 'video',
-      contentUrl: 'https://www.youtube.com/watch?v=30LWjhZzg50'
+      contentUrl: 'https://www.youtube.com/watch?v=30LWjhZzg50',
+      roadmapId: makerRoadmap.id,
+      moduleId: makerModuleFoundation.id
     },
     create: {
       id: 'course-4',
       title: 'TypeScript for JavaScript Developers',
       description: 'Learn TypeScript and add type safety to your JavaScript projects. Understand interfaces, generics, decorators, and more. A must-have skill for modern web development.',
       difficulty: 'intermediate',
-      roadmapId: roadmap.id,
-      moduleId: module1.id,
+      roadmapId: makerRoadmap.id,
+      moduleId: makerModuleFoundation.id,
       contentType: 'video',
       contentUrl: 'https://www.youtube.com/watch?v=30LWjhZzg50',
       duration: 140,
@@ -302,15 +423,17 @@ Install PostgreSQL locally, then connect with psql or a GUI like pgAdmin or Tabl
     update: {
       contentType: 'text',
       contentUrl: null,
-      content: postgresqlContent
+      content: postgresqlContent,
+      roadmapId: architectRoadmap.id,
+      moduleId: architectModuleData.id
     },
     create: {
       id: 'course-5',
       title: 'Database Design with PostgreSQL',
       description: 'Master relational database design and SQL. Learn about normalization, relationships, queries, and optimization. Perfect for backend and full-stack developers.',
       difficulty: 'intermediate',
-      roadmapId: roadmap.id,
-      moduleId: module2.id,
+      roadmapId: architectRoadmap.id,
+      moduleId: architectModuleData.id,
       contentType: 'text',
       content: postgresqlContent,
       duration: 160,
@@ -372,14 +495,16 @@ When studying, compare multiple valid solutions rather than memorizing a single 
       content: systemDesignContent,
       contentType: 'link',
       contentUrl: 'https://martinfowler.com/tags/architecture.html',
+      roadmapId: architectRoadmap.id,
+      moduleId: architectModuleScale.id,
     },
     create: {
       id: 'course-6',
       title: 'System Design Interview Prep',
       description: 'Prepare for system design interviews at top tech companies. Learn about architecture, scalability, databases, and distributed systems. Advanced course for experienced developers.',
       difficulty: 'advanced',
-      roadmapId: roadmap.id,
-      moduleId: module2.id,
+      roadmapId: architectRoadmap.id,
+      moduleId: architectModuleScale.id,
       contentType: 'link',
       contentUrl: 'https://martinfowler.com/tags/architecture.html',
       content: systemDesignContent,
@@ -426,14 +551,16 @@ When a user learns one pattern, they should be able to transfer that understandi
       content: uiPatternsContent,
       contentType: 'image',
       contentUrl: 'https://images.unsplash.com/photo-1558655146-d09347e92766?auto=format&fit=crop&w=1280&q=80',
+      roadmapId: catalystRoadmap.id,
+      moduleId: catalystModuleDesign.id,
     },
     create: {
       id: 'course-7',
       title: 'UI System Patterns (Image Notes)',
       description: 'A visual guide to spacing, hierarchy, and card systems used in production SaaS products.',
       difficulty: 'beginner',
-      roadmapId: roadmap.id,
-      moduleId: module1.id,
+      roadmapId: catalystRoadmap.id,
+      moduleId: catalystModuleDesign.id,
       contentType: 'image',
       contentUrl: 'https://images.unsplash.com/photo-1558655146-d09347e92766?auto=format&fit=crop&w=1280&q=80',
       content: uiPatternsContent,
@@ -447,18 +574,102 @@ When a user learns one pattern, they should be able to transfer that understandi
   await prisma.course.upsert({
     where: { id: 'course-8' },
     update: {
-      content: cleanCodeContent
+      content: cleanCodeContent,
+      roadmapId: makerRoadmap.id,
+      moduleId: makerModuleDelivery.id,
     },
     create: {
       id: 'course-8',
       title: 'Clean Code Principles and Best Practices',
       description: 'Write code that is easy to read, change, and maintain. Covers naming conventions, SOLID principles, error handling, and refactoring techniques used by professional software teams.',
       difficulty: 'beginner',
-      roadmapId: roadmap.id,
-      moduleId: module1.id,
+      roadmapId: makerRoadmap.id,
+      moduleId: makerModuleDelivery.id,
       contentType: 'text',
       content: cleanCodeContent,
       duration: 60,
+      version: '1.0'
+    }
+  })
+
+  const productDiscoveryContent = `# Product Discovery for Catalyst Leaders
+
+Great catalysts reduce waste by validating assumptions before teams over-build. Product discovery combines problem framing, rapid learning loops, and evidence-based decisions.
+
+## Start with outcomes, not features
+
+Before proposing a feature, define the behavior change you need from users. Tie that behavior to a measurable business outcome.
+
+## Discovery loop
+
+Use a simple loop: frame the problem, form a hypothesis, run a lightweight experiment, then decide. Strong teams run this loop continuously rather than once per quarter.
+
+## Experiment types
+
+Use interviews for qualitative context, prototypes for usability, and instrumentation for behavioral proof. Prefer low-cost experiments before engineering-heavy bets.
+
+## Decision quality
+
+Document assumptions and results so the team can revisit why decisions were made. This strengthens alignment with design, engineering, and stakeholders.`
+
+  const _course9 = await prisma.course.upsert({
+    where: { id: 'course-9' },
+    update: {
+      contentType: 'text',
+      contentUrl: null,
+      content: productDiscoveryContent,
+      roadmapId: catalystRoadmap.id,
+      moduleId: catalystModuleLeadership.id,
+    },
+    create: {
+      id: 'course-9',
+      title: 'Product Discovery and Experimentation',
+      description: 'Lead product discovery loops with experiments, hypotheses, and measurable outcomes.',
+      difficulty: 'intermediate',
+      roadmapId: catalystRoadmap.id,
+      moduleId: catalystModuleLeadership.id,
+      contentType: 'text',
+      content: productDiscoveryContent,
+      duration: 75,
+      version: '1.0'
+    }
+  })
+
+  const stakeholderContent = `# Stakeholder Facilitation for Delivery Catalysts
+
+Catalysts translate between teams to keep execution moving. Facilitation is not presentation; it is structured alignment under constraints.
+
+## Meeting architecture
+
+Define objective, decision owner, participants, and expected output before each session. End every meeting with clear owners and deadlines.
+
+## Conflict navigation
+
+Surface disagreement early and frame tradeoffs explicitly. Keep debates anchored to outcomes, data, and constraints.
+
+## Execution hygiene
+
+Use decision logs, action trackers, and weekly review cadences to prevent ambiguity drift across teams.`
+
+  const _course10 = await prisma.course.upsert({
+    where: { id: 'course-10' },
+    update: {
+      contentType: 'text',
+      contentUrl: null,
+      content: stakeholderContent,
+      roadmapId: catalystRoadmap.id,
+      moduleId: catalystModuleLeadership.id,
+    },
+    create: {
+      id: 'course-10',
+      title: 'Stakeholder Facilitation and Delivery Rhythm',
+      description: 'Run high-clarity stakeholder sessions and keep cross-functional delivery aligned.',
+      difficulty: 'intermediate',
+      roadmapId: catalystRoadmap.id,
+      moduleId: catalystModuleLeadership.id,
+      contentType: 'text',
+      content: stakeholderContent,
+      duration: 70,
       version: '1.0'
     }
   })
@@ -470,8 +681,9 @@ When a user learns one pattern, they should be able to transfer that understandi
     { userId: learner1.id, courseId: course1.id, status: 'completed', progress: 100 },
     { userId: learner1.id, courseId: course2.id, status: 'in_progress', progress: 45 },
     { userId: learner1.id, courseId: course3.id, status: 'in_progress', progress: 30 },
-    { userId: learner2.id, courseId: course1.id, status: 'in_progress', progress: 60 },
-    { userId: learner2.id, courseId: course4.id, status: 'in_progress', progress: 20 },
+    { userId: learner2.id, courseId: 'course-7', status: 'in_progress', progress: 60 },
+    { userId: learner2.id, courseId: _course9.id, status: 'in_progress', progress: 20 },
+    { userId: learner2.id, courseId: _course10.id, status: 'started', progress: 5 },
     { userId: candidate1.id, courseId: course1.id, status: 'started', progress: 15 }
   ]
 

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+import { normalizeArchetype } from "@/lib/archetypes";
 
 export async function PATCH(
   req: Request,
@@ -21,7 +22,15 @@ export async function PATCH(
 
     const updateData: { role?: string; archetype?: string } = {};
     if (role) updateData.role = role;
-    if (archetype) updateData.archetype = archetype;
+    if (archetype) {
+      const normalizedArchetype = normalizeArchetype(archetype);
+
+      if (!normalizedArchetype) {
+        return NextResponse.json({ error: "Invalid archetype" }, { status: 400 });
+      }
+
+      updateData.archetype = normalizedArchetype;
+    }
 
     const updatedUser = await prisma.user.update({
       where: { id: userId },

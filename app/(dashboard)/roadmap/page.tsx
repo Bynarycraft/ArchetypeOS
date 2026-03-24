@@ -7,6 +7,7 @@ import { GraduationCap } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { TabHelperCard } from "@/components/layout/tab-helper-card";
 import Link from "next/link";
+import { normalizeArchetype } from "@/lib/archetypes";
 
 export default async function RoadmapPage() {
     const session = await getServerSession(authOptions);
@@ -26,7 +27,7 @@ export default async function RoadmapPage() {
 
     if (!user) return <div>User not found</div>;
 
-    const userArchetype = user.archetype?.trim() || null;
+    const userArchetype = normalizeArchetype(user.archetype);
 
     const matchedRoadmaps = await prisma.roadmap.findMany({
         where: userArchetype
@@ -42,17 +43,8 @@ export default async function RoadmapPage() {
         }
     });
 
-    const fallbackRoadmaps = matchedRoadmaps.length === 0
-        ? await prisma.roadmap.findMany({
-            include: {
-                courses: true
-            }
-        })
-        : [];
-
-    const roadmaps = matchedRoadmaps.length > 0 ? matchedRoadmaps : fallbackRoadmaps;
+    const roadmaps = matchedRoadmaps;
     const displayArchetype = userArchetype || "Unassigned";
-    const isUsingFallbackRoadmap = matchedRoadmaps.length === 0 && fallbackRoadmaps.length > 0;
 
     return (
         <div className="space-y-8">
@@ -80,17 +72,6 @@ export default async function RoadmapPage() {
                         "Track progression from starter modules to advanced modules.",
                     ]}
                 />
-
-                {isUsingFallbackRoadmap && (
-                    <Card className="border-none glass-card rounded-[2rem]">
-                        <CardContent className="p-6">
-                            <h3 className="text-lg font-black tracking-tight">Dedicated roadmap not assigned yet</h3>
-                            <p className="mt-2 text-sm text-muted-foreground font-medium">
-                                No roadmap is currently mapped to <strong>{displayArchetype}</strong>. Showing the shared core roadmap so learners can still continue.
-                            </p>
-                        </CardContent>
-                    </Card>
-                )}
 
                 {roadmaps.map((roadmap) => (
                     <div key={roadmap.id} className="space-y-8">
@@ -141,8 +122,8 @@ export default async function RoadmapPage() {
                         <div className="w-20 h-20 rounded-3xl bg-primary/10 flex items-center justify-center text-primary mb-6 animate-pulse">
                             <GraduationCap className="h-10 w-10" />
                         </div>
-                        <h3 className="text-2xl font-black tracking-tight mb-2">No roadmap data available</h3>
-                        <p className="text-muted-foreground max-w-sm font-medium italic">There are no roadmap records in the database yet. Add or seed a roadmap to populate this page.</p>
+                        <h3 className="text-2xl font-black tracking-tight mb-2">No roadmap assigned for this archetype</h3>
+                        <p className="text-muted-foreground max-w-sm font-medium italic">No roadmap is currently mapped to <strong>{displayArchetype}</strong>. Assign this user to a supported archetype or add a matching roadmap in admin.</p>
                     </Card>
                 )}
             </div>

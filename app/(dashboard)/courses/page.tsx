@@ -8,10 +8,12 @@ import Link from "next/link";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { TabHelperCard } from "@/components/layout/tab-helper-card";
+import { normalizeArchetype } from "@/lib/archetypes";
 
 export default async function CoursesPage() {
     const session = await getServerSession(authOptions);
     const role = session?.user?.role?.toLowerCase();
+    const normalizedArchetype = normalizeArchetype(session?.user?.archetype);
 
     type CourseWithRoadmap = Prisma.CourseGetPayload<{ include: { roadmap: true } }>;
     let courses: CourseWithRoadmap[] = [];
@@ -22,6 +24,37 @@ export default async function CoursesPage() {
                 include: { course: { include: { roadmap: true } } }
             });
             courses = enrollments.map((enrollment: { course: typeof courses[number] }) => enrollment.course);
+        } else if (role === "learner" && session?.user?.id) {
+            courses = await prisma.course.findMany({
+                where: normalizedArchetype
+                    ? {
+                        OR: [
+                            {
+                                roadmap: {
+                                    archetype: {
+                                        equals: normalizedArchetype,
+                                        mode: "insensitive",
+                                    },
+                                },
+                            },
+                            {
+                                enrollments: {
+                                    some: {
+                                        userId: session.user.id,
+                                    },
+                                },
+                            },
+                        ],
+                    }
+                    : {
+                        enrollments: {
+                            some: {
+                                userId: session.user.id,
+                            },
+                        },
+                    },
+                include: { roadmap: true },
+            });
         } else {
             courses = await prisma.course.findMany({
                 include: { roadmap: true }

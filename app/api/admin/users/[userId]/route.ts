@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+import { normalizeArchetype, SUPPORTED_ARCHETYPES } from "@/lib/archetypes";
 
 export async function PATCH(
   req: Request,
@@ -19,10 +20,10 @@ export async function PATCH(
     const body = await req.json();
     const { role, archetype } = body;
     const normalizedRole = role ? String(role).toLowerCase() : undefined;
-    const normalizedArchetype = archetype === "NONE" ? null : archetype;
+    const normalizedArchetype = archetype === "NONE" ? null : normalizeArchetype(archetype);
 
     const validRoles = ['candidate', 'learner', 'supervisor', 'admin'];
-    const validArchetypes = ['MAKER', 'ARCHITECT', 'REFINER', 'CATALYST', 'CRAFTSMAN', 'NONE'];
+    const validArchetypes = [...SUPPORTED_ARCHETYPES, 'NONE'];
 
     if (normalizedRole && !validRoles.includes(normalizedRole)) {
       return NextResponse.json({ error: "Invalid role" }, { status: 400 });

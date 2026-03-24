@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { isYouTubeVideoAvailable, normalizeCourseContentUrl } from "@/lib/content-url";
+import { normalizeArchetype } from "@/lib/archetypes";
 
 export async function GET(_req: Request) {
     const session = await getServerSession(authOptions);
@@ -12,7 +13,24 @@ export async function GET(_req: Request) {
     }
 
     try {
+        const role = session.user.role?.toLowerCase();
+        const userArchetype = normalizeArchetype(session.user.archetype);
+
+        const where = role === "learner"
+            ? {
+                roadmap: userArchetype
+                    ? {
+                        archetype: {
+                            equals: userArchetype,
+                            mode: "insensitive" as const,
+                        },
+                    }
+                    : undefined,
+            }
+            : undefined;
+
         const courses = await prisma.course.findMany({
+            where,
             include: {
                 roadmap: true,
                 tests: {

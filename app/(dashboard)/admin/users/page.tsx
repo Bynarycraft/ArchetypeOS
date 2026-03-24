@@ -28,6 +28,7 @@ import { Badge } from "@/components/ui/badge";
 import { Loader2, Pencil } from "lucide-react";
 import { toast } from "sonner"; // Assuming sonner is installed as per previous steps
 import { TabHelperCard } from "@/components/layout/tab-helper-card";
+import { SUPPORTED_ARCHETYPES } from "@/lib/archetypes";
 
 type User = {
     id: string;
@@ -205,10 +206,11 @@ export default function AdminUsersPage() {
                                                         </SelectTrigger>
                                                         <SelectContent>
                                                             <SelectItem value="NONE">None</SelectItem>
-                                                            <SelectItem value="MAKER">Maker</SelectItem>
-                                                            <SelectItem value="ARCHITECT">Architect</SelectItem>
-                                                            <SelectItem value="REFINER">Refiner</SelectItem>
-                                                            <SelectItem value="CATALYST">Catalyst</SelectItem>
+                                                            {SUPPORTED_ARCHETYPES.map((archetypeOption) => (
+                                                                <SelectItem key={archetypeOption} value={archetypeOption}>
+                                                                    {archetypeOption}
+                                                                </SelectItem>
+                                                            ))}
                                                         </SelectContent>
                                                     </Select>
                                                 </div>
