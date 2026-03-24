@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
+import QRCode from "qrcode";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { certificateFileName, formatCertificateNumber } from "@/lib/certificates";
@@ -12,7 +13,7 @@ function isPrivilegedRole(role?: string) {
   return normalized === "admin" || normalized === "supervisor";
 }
 
-export async function GET(_request: Request, { params }: Params) {
+export async function GET(request: Request, { params }: Params) {
   const session = await getServerSession(authOptions);
   if (!session) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -65,6 +66,7 @@ export async function GET(_request: Request, { params }: Params) {
     const certificateNumber = formatCertificateNumber(certificate.id, certificate.timestamp);
     const learnerName = certificate.user.name || certificate.user.email || "Learner";
     const courseTitle = course?.title || "Course Completion";
+    const verificationUrl = new URL(`/verify/certificate/${certificate.id}`, request.url).toString();
 
     const pdf = await PDFDocument.create();
     const page = pdf.addPage([842, 595]);
@@ -146,10 +148,34 @@ export async function GET(_request: Request, { params }: Params) {
       color: rgb(0.2, 0.2, 0.25),
     });
 
-    page.drawText(`Verification: /verify/certificate/${certificate.id}`, {
+    page.drawText(`Verification: ${verificationUrl}`, {
       x: 56,
       y: 72,
       size: 12,
+      font: bodyFont,
+      color: rgb(0.2, 0.2, 0.25),
+    });
+
+    const qrDataUrl = await QRCode.toDataURL(verificationUrl, {
+      margin: 1,
+      width: 220,
+      color: {
+        dark: "#0f172a",
+        light: "#ffffff",
+      },
+    });
+    const qrImage = await pdf.embedPng(qrDataUrl);
+    page.drawImage(qrImage, {
+      x: width - 170,
+      y: 50,
+      width: 96,
+      height: 96,
+    });
+
+    page.drawText("Scan to verify", {
+      x: width - 170,
+      y: 36,
+      size: 10,
       font: bodyFont,
       color: rgb(0.2, 0.2, 0.25),
     });
