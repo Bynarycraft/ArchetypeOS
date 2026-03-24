@@ -7,8 +7,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Loader2 } from "lucide-react";
+import { Loader2, CheckSquare } from "lucide-react";
 import { TabHelperCard } from "@/components/layout/tab-helper-card";
+import { PageHeader } from "@/components/layout/page-header";
+import { EmptyState } from "@/components/layout/empty-state";
 import { toast } from "sonner";
 
 type Submission = {
@@ -157,10 +159,11 @@ export default function SupervisorPage() {
 
   return (
     <div className="space-y-8">
-      <div className="border-b border-border/20 pb-4">
-        <h1 className="text-4xl font-black tracking-tight">Supervisor Grading</h1>
-        <p className="mt-2 text-muted-foreground">Review pending submissions and provide feedback.</p>
-      </div>
+      <PageHeader 
+        icon={CheckSquare}
+        title="Supervisor Grading"
+        description="Review pending submissions and provide feedback."
+      />
 
       <TabHelperCard
         summary="This tab is for supervisors to review test submissions and publish grades with feedback."
@@ -215,29 +218,25 @@ export default function SupervisorPage() {
       </Card>
 
       {loadingSubmissions ? (
-        <Card>
+        <Card className="border-none glass-card">
           <CardHeader>
             <CardTitle>Loading submissions</CardTitle>
             <CardDescription>Fetching pending grading queue...</CardDescription>
           </CardHeader>
         </Card>
       ) : loadError ? (
-        <Card>
-          <CardHeader>
-            <CardTitle>Unable to load grading queue</CardTitle>
-            <CardDescription>{loadError}</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button onClick={loadPendingSubmissions}>Retry</Button>
-          </CardContent>
-        </Card>
+        <EmptyState 
+          icon={CheckSquare}
+          title="Unable to load grading queue"
+          description={loadError}
+          action={<Button onClick={loadPendingSubmissions}>Retry</Button>}
+        />
       ) : submissions.length === 0 ? (
-        <Card>
-          <CardHeader>
-            <CardTitle>No pending submissions</CardTitle>
-            <CardDescription>All available learner assessments are graded.</CardDescription>
-          </CardHeader>
-        </Card>
+        <EmptyState 
+          icon={CheckSquare}
+          title="No pending submissions"
+          description="All available learner assessments are graded."
+        />
       ) : (
         <div className="grid gap-5">
           {submissions.map((submission) => {
@@ -247,7 +246,7 @@ export default function SupervisorPage() {
             const isSubmitting = !!submittingById[submission.id];
 
             return (
-              <Card key={submission.id} className="glass-card">
+              <Card key={submission.id} className="glass-card rounded-2xl">
                 <CardHeader>
                   <div className="flex items-center justify-between gap-3">
                     <div>

@@ -3,6 +3,9 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Award } from "lucide-react";
+import { PageHeader } from "@/components/layout/page-header";
+import { EmptyState } from "@/components/layout/empty-state";
+import { LoadingCard } from "@/components/layout/loading-skeleton";
 
 type CertificateItem = {
   id: string;
@@ -33,30 +36,33 @@ export default function CertificatesPage() {
   }, []);
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8">
-      <div className="pb-2 border-b border-border/10">
-        <h1 className="text-4xl font-black tracking-tight text-gradient flex items-center gap-3">
-          <Award className="h-7 w-7" /> Certificates
-        </h1>
-        <p className="text-muted-foreground mt-2 text-sm font-medium">
-          Certificates earned from completed modules.
-        </p>
-      </div>
+    <div className="space-y-8">
+      <PageHeader 
+        icon={Award}
+        title="Certificates"
+        description="Certificates earned from completed modules."
+      />
 
       {loading ? (
-        <div className="text-sm text-muted-foreground">Loading certificates...</div>
+        <div className="space-y-4">
+          <LoadingCard />
+          <LoadingCard />
+        </div>
       ) : items.length === 0 ? (
-        <Card className="border-none glass-card rounded-3xl">
-          <CardContent className="p-10 text-center text-sm text-muted-foreground">
-            No certificates earned yet.
-          </CardContent>
-        </Card>
+        <EmptyState 
+          icon={Award}
+          title="No certificates earned yet"
+          description="Complete modules and assessments to earn certificates of completion."
+        />
       ) : (
         <div className="space-y-4">
           {items.map((item) => (
-            <Card key={item.id} className="border-none glass-card rounded-2xl">
+            <Card key={item.id} className="border-none glass-card rounded-2xl hover:shadow-md transition-shadow">
               <CardHeader>
-                <CardTitle className="text-lg font-black">Completion Certificate</CardTitle>
+                <CardTitle className="text-lg font-black flex items-center gap-2">
+                  <Award className="h-5 w-5 text-primary" />
+                  Completion Certificate
+                </CardTitle>
               </CardHeader>
               <CardContent className="text-sm text-muted-foreground space-y-2">
                 <div>Issued: {new Date(item.timestamp).toLocaleString()}</div>

@@ -14,8 +14,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Bell, AlertTriangle, MessageSquare } from "lucide-react";
+import { Bell, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
+import { PageHeader } from "@/components/layout/page-header";
+import { EmptyState } from "@/components/layout/empty-state";
+import { LoadingCard } from "@/components/layout/loading-skeleton";
 
 type NotificationItem = {
   id: string;
@@ -136,15 +139,12 @@ export default function NotificationsPage() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8">
-      <div className="pb-2 border-b border-border/10">
-        <h1 className="text-4xl font-black tracking-tight text-gradient flex items-center gap-3">
-          <Bell className="h-7 w-7" /> Notifications
-        </h1>
-        <p className="text-muted-foreground mt-2 text-sm font-medium">
-          Mission updates and guidance from your leadership chain.
-        </p>
-      </div>
+    <div className="space-y-8">
+      <PageHeader 
+        icon={Bell}
+        title="Notifications"
+        description="Mission updates and guidance from your leadership chain."
+      />
 
       {canSend && (
         <Card className="border-none glass-card rounded-3xl">
@@ -200,18 +200,20 @@ export default function NotificationsPage() {
       )}
 
       {loading ? (
-        <div className="text-sm text-muted-foreground">Loading notifications...</div>
+        <div className="space-y-4">
+          <LoadingCard />
+          <LoadingCard />
+        </div>
       ) : items.length === 0 ? (
-        <Card className="border-none glass-card rounded-3xl">
-          <CardContent className="p-10 text-center space-y-3">
-            <MessageSquare className="h-8 w-8 mx-auto text-muted-foreground" />
-            <p className="text-sm text-muted-foreground">No notifications yet.</p>
-          </CardContent>
-        </Card>
+        <EmptyState 
+          icon={Bell}
+          title="No notifications yet"
+          description="Updates and guidance from your leadership will appear here."
+        />
       ) : (
         <div className="space-y-4">
           {items.map((item) => (
-            <Card key={item.id} className="border-none glass-card rounded-2xl">
+            <Card key={item.id} className="border-none glass-card rounded-2xl hover:shadow-md transition-shadow">
               <CardHeader className="p-6 pb-2">
                 <div className="flex items-center justify-between gap-4">
                   <CardTitle className="text-lg font-black">
@@ -237,4 +239,4 @@ export default function NotificationsPage() {
       )}
     </div>
   );
-}
+ }

@@ -16,6 +16,9 @@ import {
 } from "@/components/ui/select";
 import { MessageSquare, Star } from "lucide-react";
 import { toast } from "sonner";
+import { PageHeader } from "@/components/layout/page-header";
+import { EmptyState } from "@/components/layout/empty-state";
+import { LoadingCard } from "@/components/layout/loading-skeleton";
 
 type FeedbackItem = {
   id: string;
@@ -119,15 +122,12 @@ export default function FeedbackPage() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8">
-      <div className="pb-2 border-b border-border/10">
-        <h1 className="text-4xl font-black tracking-tight text-gradient flex items-center gap-3">
-          <MessageSquare className="h-7 w-7" /> Feedback Inbox
-        </h1>
-        <p className="text-muted-foreground mt-2 text-sm font-medium">
-          Direct feedback from supervisors and peers.
-        </p>
-      </div>
+    <div className="space-y-8">
+      <PageHeader 
+        icon={MessageSquare}
+        title="Feedback Inbox"
+        description="Direct feedback from supervisors and peers."
+      />
 
       {canSend && (
         <Card className="border-none glass-card rounded-3xl">
@@ -189,18 +189,20 @@ export default function FeedbackPage() {
       )}
 
       {loading ? (
-        <div className="text-sm text-muted-foreground">Loading feedback...</div>
+        <div className="space-y-4">
+          <LoadingCard />
+          <LoadingCard />
+        </div>
       ) : items.length === 0 ? (
-        <Card className="border-none glass-card rounded-3xl">
-          <CardContent className="p-10 text-center space-y-3">
-            <MessageSquare className="h-8 w-8 mx-auto text-muted-foreground" />
-            <p className="text-sm text-muted-foreground">No feedback yet.</p>
-          </CardContent>
-        </Card>
+        <EmptyState 
+          icon={MessageSquare}
+          title="No feedback yet"
+          description="Feedback from supervisors and peers will appear here."
+        />
       ) : (
         <div className="space-y-4">
           {items.map((item) => (
-            <Card key={item.id} className="border-none glass-card rounded-2xl">
+            <Card key={item.id} className="border-none glass-card rounded-2xl hover:shadow-md transition-shadow">
               <CardHeader className="p-6 pb-2">
                 <div className="flex items-center justify-between gap-4">
                   <CardTitle className="text-lg font-black">

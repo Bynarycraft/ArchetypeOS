@@ -3,6 +3,9 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Notebook, CalendarClock } from "lucide-react";
+import { PageHeader } from "@/components/layout/page-header";
+import { EmptyState } from "@/components/layout/empty-state";
+import { LoadingCard } from "@/components/layout/loading-skeleton";
 
 type ReflectionItem = {
   id: string;
@@ -45,29 +48,28 @@ export default function ReflectionsPage() {
   }, []);
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8">
-      <div className="pb-2 border-b border-border/10">
-        <h1 className="text-4xl font-black tracking-tight text-gradient flex items-center gap-3">
-          <Notebook className="h-7 w-7" /> Reflections
-        </h1>
-        <p className="text-muted-foreground mt-2 text-sm font-medium">
-          Daily reflections captured after learning sessions.
-        </p>
-      </div>
+    <div className="space-y-8">
+      <PageHeader 
+        icon={Notebook}
+        title="Reflections"
+        description="Daily reflections captured after learning sessions."
+      />
 
       {loading ? (
-        <div className="text-sm text-muted-foreground">Loading reflections...</div>
+        <div className="space-y-4">
+          <LoadingCard />
+          <LoadingCard />
+        </div>
       ) : items.length === 0 ? (
-        <Card className="border-none glass-card rounded-3xl">
-          <CardContent className="p-10 text-center space-y-3">
-            <Notebook className="h-8 w-8 mx-auto text-muted-foreground" />
-            <p className="text-sm text-muted-foreground">No reflections yet.</p>
-          </CardContent>
-        </Card>
+        <EmptyState 
+          icon={Notebook}
+          title="No reflections yet"
+          description="After completing learning sessions, your reflections will appear here."
+        />
       ) : (
         <div className="space-y-4">
           {items.map((item) => (
-            <Card key={item.id} className="border-none glass-card rounded-2xl">
+            <Card key={item.id} className="border-none glass-card rounded-2xl hover:shadow-md transition-shadow">
               <CardHeader className="p-6 pb-2">
                 <CardTitle className="text-lg font-black">Session Reflection</CardTitle>
               </CardHeader>
