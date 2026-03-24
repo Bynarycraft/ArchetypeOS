@@ -57,6 +57,7 @@ export async function Sidebar() {
         "/admin/analytics": "Review platform usage analytics.",
         "/admin/tests": "Create and manage assessment banks.",
         "/admin/skills": "Search and map organization skills.",
+        "/admin/certificates": "Review and export issued certificates.",
         "/reflections": "Capture learning reflections and insights.",
         "/supervisor/reflections": "Review learner reflections and coach.",
         "/skills": "Explore skill gaps and strengths.",
@@ -68,9 +69,8 @@ export async function Sidebar() {
     const buildSections = (role: string, navItems: NavItem[]): NavSection[] => {
         if (role === "admin") {
             return [
-                { title: "Core", items: navItems.filter((i) => ["/dashboard", "/roadmap", "/courses", "/tests", "/tracker"].includes(i.href)) },
-                { title: "Management", items: navItems.filter((i) => ["/admin/dashboard", "/admin/users", "/admin/courses", "/admin/tests", "/admin/analytics", "/supervisor"].includes(i.href)) },
-                { title: "Tools", items: navItems.filter((i) => ["/skills", "/admin/skills", "/certificates", "/feedback", "/notifications"].includes(i.href)) },
+                { title: "Management", items: navItems.filter((i) => ["/admin/dashboard", "/admin/users", "/admin/courses", "/admin/tests", "/admin/analytics"].includes(i.href)) },
+                { title: "Operations", items: navItems.filter((i) => ["/admin/skills", "/admin/certificates", "/supervisor"].includes(i.href)) },
             ].filter((section) => section.items.length > 0);
         }
 

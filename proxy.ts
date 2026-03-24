@@ -28,6 +28,24 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 
+  if (
+    userRole === "admin" &&
+    [
+      "/dashboard",
+      "/roadmap",
+      "/courses",
+      "/tests",
+      "/tracker",
+      "/reflections",
+      "/skills",
+      "/certificates",
+      "/feedback",
+      "/notifications",
+    ].some((path) => pathname === path || pathname.startsWith(`${path}/`))
+  ) {
+    return NextResponse.redirect(new URL("/admin/dashboard", request.url));
+  }
+
   if (pathname.startsWith("/supervisor") && !["supervisor", "admin"].includes(userRole)) {
     return NextResponse.redirect(new URL("/dashboard", request.url));
   }
