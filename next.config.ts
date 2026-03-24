@@ -1,6 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  turbopack: {
+    root: __dirname,
+  },
   env: {
     DATABASE_URL: "postgresql://postgres:wpczgwxsriezaubncuom@db.hocsrwsjgwuhqoncklmt.supabase.co:5432/postgres",
     DIRECT_URL: "postgresql://postgres:wpczgwxsriezaubncuom@db.hocsrwsjgwuhqoncklmt.supabase.co:5432/postgres",
