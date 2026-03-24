@@ -5,10 +5,19 @@
 			"label": "Run Next Dev Server",
 			"type": "shell",
 			"command": "npm",
+			"windows": {
+				"command": "npm.cmd"
+			},
 			"args": [
+				"--prefix",
+				"${workspaceFolder}",
 				"run",
 				"dev"
 			],
+			"options": {
+				"cwd": "${workspaceFolder}"
+			},
+			"group": "build",
 			"isBackground": true
 		}
 	]
