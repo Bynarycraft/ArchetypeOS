@@ -90,16 +90,39 @@ export async function PUT(
     const { courseId } = await params;
     const body = await request.json();
     const { title, description, difficulty, contentType, contentUrl, content, duration } = body;
-    const normalizedContentUrl = normalizeCourseContentUrl(contentType, contentUrl);
 
-    if (contentType === "video" && contentUrl && !normalizedContentUrl) {
+    const normalizedTitle = typeof title === "string" ? title.trim() : "";
+    const normalizedContentType = typeof contentType === "string" ? contentType.trim().toLowerCase() : "";
+    const normalizedDifficulty = typeof difficulty === "string" && difficulty.trim().length > 0
+      ? difficulty.trim().toLowerCase()
+      : "beginner";
+    const normalizedDescription = typeof description === "string" && description.trim().length > 0
+      ? description.trim()
+      : null;
+
+    const validContentTypes = ["video", "text", "image", "pdf", "link"] as const;
+    if (!normalizedTitle) {
+      return NextResponse.json({ error: "Course title is required." }, { status: 400 });
+    }
+
+    if (!validContentTypes.includes(normalizedContentType as typeof validContentTypes[number])) {
+      return NextResponse.json({ error: "Invalid content type." }, { status: 400 });
+    }
+
+    const normalizedContentUrl = normalizeCourseContentUrl(normalizedContentType, contentUrl);
+
+    if (normalizedContentType !== "text" && !normalizedContentUrl) {
+      return NextResponse.json({ error: "Content URL is required for non-text courses." }, { status: 400 });
+    }
+
+    if (normalizedContentType === "video" && contentUrl && !normalizedContentUrl) {
       return NextResponse.json(
         { error: "Please provide a valid YouTube link for video courses." },
         { status: 400 }
       );
     }
 
-    if (contentType === "video" && normalizedContentUrl) {
+    if (normalizedContentType === "video" && normalizedContentUrl) {
       const isAvailable = await isYouTubeVideoAvailable(normalizedContentUrl);
 
       if (!isAvailable) {
@@ -110,16 +133,33 @@ export async function PUT(
       }
     }
 
+    const normalizedDuration =
+      duration === null || duration === undefined || duration === ""
+        ? null
+        : Number(duration);
+
+    if (
+      normalizedDuration !== null &&
+      (!Number.isFinite(normalizedDuration) || !Number.isInteger(normalizedDuration) || normalizedDuration <= 0)
+    ) {
+      return NextResponse.json({ error: "Duration must be a positive whole number." }, { status: 400 });
+    }
+
+    const normalizedContent =
+      normalizedContentType === "text" && typeof content === "string"
+        ? content.trim()
+        : null;
+
     const course = await prisma.course.update({
       where: { id: courseId },
       data: {
-        title,
-        description,
-        difficulty,
-        contentType,
+        title: normalizedTitle,
+        description: normalizedDescription,
+        difficulty: normalizedDifficulty,
+        contentType: normalizedContentType,
         contentUrl: normalizedContentUrl,
-        content: contentType === "text" ? (content ?? null) : null,
-        duration: typeof duration === "number" ? duration : null,
+        content: normalizedContent,
+        duration: normalizedDuration,
       },
     });
 
