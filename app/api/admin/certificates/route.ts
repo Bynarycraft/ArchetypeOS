@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { formatCertificateNumber } from "@/lib/certificates";
+import type { Prisma } from "@prisma/client";
 
 export async function GET(request: Request) {
   const session = await getServerSession(authOptions);
@@ -17,24 +18,23 @@ export async function GET(request: Request) {
     const startDate = searchParams.get("startDate");
     const endDate = searchParams.get("endDate");
 
-    const whereConditions: any = {
-      action: "certificate",
-      targetId: { not: null },
-    };
+    const timestampFilter: Prisma.DateTimeFilter = {};
 
     if (startDate) {
-      whereConditions.timestamp = {
-        ...whereConditions.timestamp,
-        gte: new Date(startDate),
-      };
+      timestampFilter.gte = new Date(startDate);
     }
 
     if (endDate) {
-      whereConditions.timestamp = {
-        ...whereConditions.timestamp,
-        lte: new Date(endDate),
-      };
+      timestampFilter.lte = new Date(endDate);
     }
+
+    const whereConditions: Prisma.AuditLogWhereInput = {
+      action: "certificate",
+      targetId: { not: null },
+      ...(Object.keys(timestampFilter).length > 0
+        ? { timestamp: timestampFilter }
+        : {}),
+    };
 
     const logs = await prisma.auditLog.findMany({
       where: whereConditions,
