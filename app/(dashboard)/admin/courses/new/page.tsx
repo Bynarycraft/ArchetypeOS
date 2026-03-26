@@ -140,8 +140,8 @@ export default function NewCoursePage() {
             return;
         }
 
-        if (formData.contentType === "video" && formData.contentUrl.trim() && videoValidationStatus !== "valid") {
-            setSubmitError("Use a public, reachable YouTube video before creating the course.");
+        if (formData.contentType === "video" && formData.contentUrl.trim() && videoValidationStatus === "invalid") {
+            setSubmitError("Use a valid YouTube video URL before creating the course.");
             setLoading(false);
             return;
         }

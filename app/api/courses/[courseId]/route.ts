@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { isYouTubeVideoAvailable, normalizeCourseContentUrl } from "@/lib/content-url";
+import { normalizeCourseContentUrl } from "@/lib/content-url";
 
 // GET course by ID
 export async function GET(
@@ -120,17 +120,6 @@ export async function PUT(
         { error: "Please provide a valid YouTube link for video courses." },
         { status: 400 }
       );
-    }
-
-    if (normalizedContentType === "video" && normalizedContentUrl) {
-      const isAvailable = await isYouTubeVideoAvailable(normalizedContentUrl);
-
-      if (!isAvailable) {
-        return NextResponse.json(
-          { error: "This YouTube video is unavailable. Use a public, reachable YouTube URL." },
-          { status: 400 }
-        );
-      }
     }
 
     const normalizedDuration =

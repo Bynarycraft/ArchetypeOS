@@ -186,8 +186,8 @@ export default function EditCoursePage() {
             return;
         }
 
-        if (formData.contentType === "video" && formData.contentUrl.trim() && videoValidationStatus !== "valid") {
-            setSubmitError("Use a public, reachable YouTube video before saving changes.");
+        if (formData.contentType === "video" && formData.contentUrl.trim() && videoValidationStatus === "invalid") {
+            setSubmitError("Use a valid YouTube video URL before saving changes.");
             setSaving(false);
             return;
         }

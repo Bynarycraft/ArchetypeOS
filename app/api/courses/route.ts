@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import { isYouTubeVideoAvailable, normalizeCourseContentUrl } from "@/lib/content-url";
+import { normalizeCourseContentUrl } from "@/lib/content-url";
 import { normalizeArchetype } from "@/lib/archetypes";
 
 export async function GET(_req: Request) {
@@ -87,17 +87,6 @@ export async function POST(req: Request) {
 
         if (normalizedContentType === "video" && contentUrl && !normalizedContentUrl) {
             return NextResponse.json({ error: "Please provide a valid YouTube link for video courses." }, { status: 400 });
-        }
-
-        if (normalizedContentType === "video" && normalizedContentUrl) {
-            const isAvailable = await isYouTubeVideoAvailable(normalizedContentUrl);
-
-            if (!isAvailable) {
-                return NextResponse.json(
-                    { error: "This YouTube video is unavailable. Use a public, reachable YouTube URL." },
-                    { status: 400 }
-                );
-            }
         }
 
         const normalizedDuration =
