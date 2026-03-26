@@ -162,7 +162,8 @@ export default function NewCoursePage() {
                 router.push("/admin/courses");
             } else {
                 const data = await res.json().catch(() => ({ error: "Failed to create course" }));
-                setSubmitError(data.error || "Failed to create course");
+                const errorMessage = data.details ? `${data.error}: ${data.details}` : (data.error || "Failed to create course");
+                setSubmitError(errorMessage);
             }
         } catch (error) {
             console.error("Error creating course:", error);

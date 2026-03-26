@@ -205,7 +205,8 @@ export default function EditCoursePage() {
 
             if (!res.ok) {
                 const data = await res.json().catch(() => ({ error: "Failed to update course" }));
-                setSubmitError(data.error || "Failed to update course");
+                const errorMessage = data.details ? `${data.error}: ${data.details}` : (data.error || "Failed to update course");
+                setSubmitError(errorMessage);
                 return;
             }
 

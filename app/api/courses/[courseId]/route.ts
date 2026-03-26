@@ -155,9 +155,13 @@ export async function PUT(
 
     return NextResponse.json(course);
   } catch (error) {
-    console.error("Update course error:", error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error("Update course error:", errorMessage, error);
     return NextResponse.json(
-      { error: "Internal server error" },
+      { 
+        error: "Failed to update course",
+        details: errorMessage
+      },
       { status: 500 }
     );
   }

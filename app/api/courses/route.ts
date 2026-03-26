@@ -120,7 +120,14 @@ export async function POST(req: Request) {
 
         return NextResponse.json(course);
     } catch (error) {
-        console.error("Create course error:", error);
-        return NextResponse.json({ error: "Failed to create course" }, { status: 500 });
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        console.error("Create course error:", errorMessage, error);
+        return NextResponse.json(
+            { 
+                error: "Failed to create course",
+                details: errorMessage // Include details for debugging
+            }, 
+            { status: 500 }
+        );
     }
 }
