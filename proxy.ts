@@ -41,7 +41,7 @@ export async function proxy(request: NextRequest) {
       "/certificates",
       "/feedback",
       "/notifications",
-    ].some((path) => pathname === path || pathname.startsWith(`${path}/`))
+    ].includes(pathname)
   ) {
     return NextResponse.redirect(new URL("/admin/dashboard", request.url));
   }

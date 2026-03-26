@@ -36,6 +36,12 @@ export default function NewCoursePage() {
     const [videoValidationStatus, setVideoValidationStatus] = useState<"idle" | "checking" | "valid" | "invalid">("idle");
     const [videoValidationMessage, setVideoValidationMessage] = useState<string>("");
 
+    const requiresContentUrl = formData.contentType !== "text";
+    const contentUrlLabel = formData.contentType === "video" ? "YouTube URL *" : "Content URL";
+    const contentUrlPlaceholder = formData.contentType === "video"
+        ? "https://www.youtube.com/watch?v=..."
+        : "https://example.com/resource";
+
     useEffect(() => {
         let canceled = false;
 
@@ -304,15 +310,15 @@ export default function NewCoursePage() {
                         {/* Content URL */}
                         <div className="space-y-2">
                             <Label htmlFor="contentUrl" className="text-sm font-bold">
-                                YouTube URL *
+                                {contentUrlLabel}
                             </Label>
                             <Input
                                 id="contentUrl"
                                 name="contentUrl"
-                                placeholder="https://www.youtube.com/watch?v=..."
+                                placeholder={contentUrlPlaceholder}
                                 value={formData.contentUrl}
                                 onChange={handleChange}
-                                required
+                                required={requiresContentUrl}
                                 className="rounded-xl h-10 border-border/40 focus:border-primary"
                             />
                             {formData.contentType === "video" ? (
