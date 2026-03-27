@@ -423,7 +423,6 @@ Install PostgreSQL locally, then connect with psql or a GUI like pgAdmin or Tabl
     update: {
       contentType: 'text',
       contentUrl: null,
-      content: postgresqlContent,
       roadmapId: architectRoadmap.id,
       moduleId: architectModuleData.id
     },
@@ -435,7 +434,6 @@ Install PostgreSQL locally, then connect with psql or a GUI like pgAdmin or Tabl
       roadmapId: architectRoadmap.id,
       moduleId: architectModuleData.id,
       contentType: 'text',
-      content: postgresqlContent,
       duration: 160,
       version: '1.0'
     }
@@ -492,7 +490,6 @@ When studying, compare multiple valid solutions rather than memorizing a single 
   const _course6 = await prisma.course.upsert({
     where: { id: 'course-6' },
     update: {
-      content: systemDesignContent,
       contentType: 'link',
       contentUrl: 'https://martinfowler.com/tags/architecture.html',
       roadmapId: architectRoadmap.id,
@@ -507,7 +504,6 @@ When studying, compare multiple valid solutions rather than memorizing a single 
       moduleId: architectModuleScale.id,
       contentType: 'link',
       contentUrl: 'https://martinfowler.com/tags/architecture.html',
-      content: systemDesignContent,
       duration: 240,
       version: '1.0'
     }
@@ -548,7 +544,6 @@ When a user learns one pattern, they should be able to transfer that understandi
   await prisma.course.upsert({
     where: { id: 'course-7' },
     update: {
-      content: uiPatternsContent,
       contentType: 'image',
       contentUrl: 'https://images.unsplash.com/photo-1558655146-d09347e92766?auto=format&fit=crop&w=1280&q=80',
       roadmapId: catalystRoadmap.id,
@@ -563,7 +558,6 @@ When a user learns one pattern, they should be able to transfer that understandi
       moduleId: catalystModuleDesign.id,
       contentType: 'image',
       contentUrl: 'https://images.unsplash.com/photo-1558655146-d09347e92766?auto=format&fit=crop&w=1280&q=80',
-      content: uiPatternsContent,
       duration: 90,
       version: '1.0'
     }
@@ -574,7 +568,6 @@ When a user learns one pattern, they should be able to transfer that understandi
   await prisma.course.upsert({
     where: { id: 'course-8' },
     update: {
-      content: cleanCodeContent,
       roadmapId: makerRoadmap.id,
       moduleId: makerModuleDelivery.id,
     },
@@ -586,7 +579,6 @@ When a user learns one pattern, they should be able to transfer that understandi
       roadmapId: makerRoadmap.id,
       moduleId: makerModuleDelivery.id,
       contentType: 'text',
-      content: cleanCodeContent,
       duration: 60,
       version: '1.0'
     }
@@ -617,7 +609,6 @@ Document assumptions and results so the team can revisit why decisions were made
     update: {
       contentType: 'text',
       contentUrl: null,
-      content: productDiscoveryContent,
       roadmapId: catalystRoadmap.id,
       moduleId: catalystModuleLeadership.id,
     },
@@ -629,7 +620,6 @@ Document assumptions and results so the team can revisit why decisions were made
       roadmapId: catalystRoadmap.id,
       moduleId: catalystModuleLeadership.id,
       contentType: 'text',
-      content: productDiscoveryContent,
       duration: 75,
       version: '1.0'
     }
@@ -656,7 +646,6 @@ Use decision logs, action trackers, and weekly review cadences to prevent ambigu
     update: {
       contentType: 'text',
       contentUrl: null,
-      content: stakeholderContent,
       roadmapId: catalystRoadmap.id,
       moduleId: catalystModuleLeadership.id,
     },
@@ -668,7 +657,6 @@ Use decision logs, action trackers, and weekly review cadences to prevent ambigu
       roadmapId: catalystRoadmap.id,
       moduleId: catalystModuleLeadership.id,
       contentType: 'text',
-      content: stakeholderContent,
       duration: 70,
       version: '1.0'
     }

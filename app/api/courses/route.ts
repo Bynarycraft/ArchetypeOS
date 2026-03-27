@@ -101,11 +101,6 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: "Duration must be a positive whole number." }, { status: 400 });
         }
 
-        const normalizedContent =
-            normalizedContentType === "text" && typeof content === "string"
-                ? content.trim()
-                : null;
-
         const course = await prisma.course.create({
             data: {
                 title: normalizedTitle,
@@ -113,9 +108,8 @@ export async function POST(req: Request) {
                 difficulty: normalizedDifficulty,
                 contentType: normalizedContentType,
                 contentUrl: normalizedContentUrl,
-                content: normalizedContent,
                 duration: normalizedDuration,
-            }
+            },
         });
 
         return NextResponse.json(course);
