@@ -4,11 +4,11 @@ CREATE EXTENSION IF NOT EXISTS pgcrypto;
 -- Seed Users with bcrypt-hashed passwords (password123)
 INSERT INTO "User" ("id", "name", "email", "password", "role", "archetype", "supervisorId", "totalLearningHours", "createdAt", "updatedAt")
 VALUES 
-  ('user-admin-001', 'Sarah Admin', 'admin@archetypeos.com', crypt('password123', gen_salt('bf', 10)), 'admin', 'Architect', NULL, 0, NOW(), NOW()),
-  ('user-supervisor-001', 'Mark Supervisor', 'supervisor@archetypeos.com', crypt('password123', gen_salt('bf', 10)), 'supervisor', 'Catalyst', NULL, 0, NOW(), NOW()),
-  ('user-learner-001', 'Alice Johnson', 'alice@archetypeos.com', crypt('password123', gen_salt('bf', 10)), 'learner', 'Maker', 'user-supervisor-001', 24, NOW(), NOW()),
-  ('user-learner-002', 'Bob Williams', 'bob@archetypeos.com', crypt('password123', gen_salt('bf', 10)), 'learner', 'Catalyst', 'user-supervisor-001', 18, NOW(), NOW()),
-  ('user-candidate-001', 'Charlie Candidate', 'candidate@archetypeos.com', crypt('password123', gen_salt('bf', 10)), 'candidate', NULL, NULL, 0, NOW(), NOW())
+  ('user-admin-001', 'Admin User', 'admin@archetype.local', crypt('password123', gen_salt('bf', 10)), 'admin', 'Architect', NULL, 0, NOW(), NOW()),
+  ('user-supervisor-001', 'Supervisor User', 'supervisor@archetype.local', crypt('password123', gen_salt('bf', 10)), 'supervisor', 'Catalyst', NULL, 0, NOW(), NOW()),
+  ('user-learner-001', 'Alice Learner', 'learner1@archetype.local', crypt('password123', gen_salt('bf', 10)), 'learner', 'Maker', 'user-supervisor-001', 24, NOW(), NOW()),
+  ('user-learner-002', 'Bob Learner', 'learner2@archetype.local', crypt('password123', gen_salt('bf', 10)), 'learner', 'Catalyst', 'user-supervisor-001', 18, NOW(), NOW()),
+  ('user-candidate-001', 'Charlie Candidate', 'candidate@archetype.local', crypt('password123', gen_salt('bf', 10)), 'candidate', NULL, NULL, 0, NOW(), NOW())
 ON CONFLICT ("id") DO UPDATE SET "password" = EXCLUDED."password", "updatedAt" = NOW();
 
 -- Seed Roadmaps

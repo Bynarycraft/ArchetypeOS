@@ -19,11 +19,11 @@ async function seedDatabase() {
     const hashedPassword = await bcrypt.hash("password123", 10);
 
     const admin = await prisma.user.upsert({
-      where: { email: "admin@archetypeos.com" },
+      where: { email: "admin@archetype.local" },
       update: {},
       create: {
-        name: "Sarah Admin",
-        email: "admin@archetypeos.com",
+        name: "Admin User",
+        email: "admin@archetype.local",
         password: hashedPassword,
         role: "admin",
         archetype: "Architect",
@@ -31,11 +31,11 @@ async function seedDatabase() {
     });
 
     const supervisor = await prisma.user.upsert({
-      where: { email: "supervisor@archetypeos.com" },
+      where: { email: "supervisor@archetype.local" },
       update: {},
       create: {
-        name: "Mark Supervisor",
-        email: "supervisor@archetypeos.com",
+        name: "Supervisor User",
+        email: "supervisor@archetype.local",
         password: hashedPassword,
         role: "supervisor",
         archetype: "Catalyst",
@@ -43,11 +43,11 @@ async function seedDatabase() {
     });
 
     const learner1 = await prisma.user.upsert({
-      where: { email: "alice@archetypeos.com" },
+      where: { email: "learner1@archetype.local" },
       update: {},
       create: {
-        name: "Alice Johnson",
-        email: "alice@archetypeos.com",
+        name: "Alice Learner",
+        email: "learner1@archetype.local",
         password: hashedPassword,
         role: "learner",
         archetype: "Maker",
@@ -57,11 +57,11 @@ async function seedDatabase() {
     });
 
     const learner2 = await prisma.user.upsert({
-      where: { email: "bob@archetypeos.com" },
+      where: { email: "learner2@archetype.local" },
       update: {},
       create: {
-        name: "Bob Williams",
-        email: "bob@archetypeos.com",
+        name: "Bob Learner",
+        email: "learner2@archetype.local",
         password: hashedPassword,
         role: "learner",
         archetype: "Catalyst",
@@ -71,11 +71,11 @@ async function seedDatabase() {
     });
 
     const candidate = await prisma.user.upsert({
-      where: { email: "candidate@archetypeos.com" },
+      where: { email: "candidate@archetype.local" },
       update: {},
       create: {
         name: "Charlie Candidate",
-        email: "candidate@archetypeos.com",
+        email: "candidate@archetype.local",
         password: hashedPassword,
         role: "candidate",
         archetype: null,
