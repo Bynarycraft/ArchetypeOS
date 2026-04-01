@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { sendCandidateStatusEmail } from "@/lib/email";
+import { sendCandidateStatusSms } from "@/lib/sms";
 
 export async function PATCH(
   req: Request,
@@ -19,7 +20,7 @@ export async function PATCH(
 
   try {
     const body = await req.json();
-    const { decision } = body || {};
+    const { decision, phone } = body || {};
 
     if (!decision || !["accept", "reject", "pending"].includes(decision)) {
       return NextResponse.json({ error: "Invalid decision" }, { status: 400 });
@@ -79,7 +80,21 @@ export async function PATCH(
       }
     }
 
-    return NextResponse.json({ success: true, decision, emailSent });
+    let smsSent = false;
+    if (typeof phone === "string" && phone.trim().length > 0) {
+      try {
+        const result = await sendCandidateStatusSms({
+          to: phone.trim(),
+          name: user.name,
+          decision,
+        });
+        smsSent = result.sent;
+      } catch (smsError) {
+        console.error("Candidate status sms error:", smsError);
+      }
+    }
+
+    return NextResponse.json({ success: true, decision, emailSent, smsSent });
   } catch (error) {
     console.error("Candidate decision error:", error);
     return NextResponse.json({ error: "Failed to update candidate" }, { status: 500 });
