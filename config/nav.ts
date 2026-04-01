@@ -35,9 +35,11 @@ export const navConfig = {
     admin: [
         { label: "Dashboard", href: "/admin/dashboard", icon: "ShieldCheck" },
         { label: "User Management", href: "/admin/users", icon: "Users" },
+        { label: "Archetypes", href: "/admin/archetypes", icon: "Layers" },
         { label: "Course Management", href: "/admin/courses", icon: "BookOpen" },
         { label: "Test Management", href: "/admin/tests", icon: "ClipboardList" },
         { label: "Analytics", href: "/admin/analytics", icon: "BarChart3" },
+        { label: "Audit Logs", href: "/admin/audit", icon: "FileText" },
         { label: "Skill Search", href: "/admin/skills", icon: "Brain" },
         { label: "Certificate Registry", href: "/admin/certificates", icon: "Award" },
         { label: "Supervisor Hub", href: "/supervisor", icon: "LayoutDashboard" },
