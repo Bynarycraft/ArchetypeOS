@@ -8,9 +8,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Loader2, Plus, CheckCircle2, Clock, BookOpen } from "lucide-react";
+import { Loader2, Plus, CheckCircle2, BookOpen } from "lucide-react";
 import { toast } from "sonner";
-import { PageHeader } from "@/components/layout/page-helper";
+import { PageHeader } from "@/components/layout/page-header";
 
 interface Learner {
   id: string;
@@ -144,6 +144,7 @@ export default function SupervisorAssignCoursesPage() {
   return (
     <div className="space-y-8">
       <PageHeader
+        icon={BookOpen}
         title="Assign Courses to Learners"
         description="Select learners and assign courses to them according to your archetype roadmap"
       />

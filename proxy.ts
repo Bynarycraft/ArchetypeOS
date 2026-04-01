@@ -50,15 +50,15 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 
-  if (
-    userRole === "candidate" &&
-    (pathname.startsWith("/dashboard") ||
-      pathname.startsWith("/roadmap") ||
-      pathname.startsWith("/tracker") ||
-      pathname.startsWith("/admin") ||
-      pathname.startsWith("/supervisor"))
-  ) {
-    return NextResponse.redirect(new URL("/candidate", request.url));
+  if (userRole === "candidate") {
+    const candidateAllowedPrefixes = ["/candidate", "/courses", "/tests", "/notifications", "/auth"];
+    const isCandidateAllowed = candidateAllowedPrefixes.some(
+      (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`)
+    );
+
+    if (!isCandidateAllowed && pathname !== "/") {
+      return NextResponse.redirect(new URL("/candidate", request.url));
+    }
   }
 
   return NextResponse.next();
