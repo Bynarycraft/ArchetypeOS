@@ -21,6 +21,7 @@ export const navConfig = {
     supervisor: [
         { label: "Dashboard", href: "/supervisor", icon: "LayoutDashboard" },
         { label: "Grading", href: "/supervisor", icon: "ShieldCheck" },
+        { label: "Progress", href: "/supervisor/progress", icon: "BarChart3" },
         { label: "Assign Courses", href: "/supervisor/assign-courses", icon: "BookOpen" },
         { label: "Roadmap", href: "/roadmap", icon: "Map" },
         { label: "Courses", href: "/courses", icon: "BookOpen" },
@@ -36,6 +37,7 @@ export const navConfig = {
         { label: "Dashboard", href: "/admin/dashboard", icon: "ShieldCheck" },
         { label: "User Management", href: "/admin/users", icon: "Users" },
         { label: "Archetypes", href: "/admin/archetypes", icon: "Layers" },
+        { label: "Roadmaps", href: "/admin/roadmaps", icon: "Map" },
         { label: "Course Management", href: "/admin/courses", icon: "BookOpen" },
         { label: "Test Management", href: "/admin/tests", icon: "ClipboardList" },
         { label: "Analytics", href: "/admin/analytics", icon: "BarChart3" },
