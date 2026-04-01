@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, CheckSquare } from "lucide-react";
+import { Loader2, CheckSquare, Users, Clock3, FileDown } from "lucide-react";
 import { TabHelperCard } from "@/components/layout/tab-helper-card";
 import { PageHeader } from "@/components/layout/page-header";
 import { EmptyState } from "@/components/layout/empty-state";
@@ -30,6 +30,26 @@ type TestApiResult = {
   user: { name: string | null; email: string | null };
 };
 
+type Learner = {
+  id: string;
+  name: string | null;
+  email: string | null;
+  role: string;
+  courseEnrollments: Array<{
+    id: string;
+    status: string;
+    progress: number;
+  }>;
+};
+
+type IdleLearner = {
+  id: string;
+  name: string | null;
+  email: string | null;
+  role: string;
+  lastSessionAt: string | null;
+};
+
 export default function SupervisorPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
@@ -43,6 +63,33 @@ export default function SupervisorPage() {
   const [pageSize, setPageSize] = useState(10);
   const [totalPending, setTotalPending] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
+  const [learners, setLearners] = useState<Learner[]>([]);
+  const [idleLearners, setIdleLearners] = useState<IdleLearner[]>([]);
+  const [loadingOverview, setLoadingOverview] = useState(true);
+
+  const loadOverview = useCallback(async () => {
+    setLoadingOverview(true);
+    try {
+      const [learnersRes, idleRes] = await Promise.all([
+        fetch("/api/supervisor/learners"),
+        fetch("/api/supervisor/idle?days=3"),
+      ]);
+
+      if (learnersRes.ok) {
+        setLearners(await learnersRes.json());
+      }
+
+      if (idleRes.ok) {
+        const idlePayload = await idleRes.json();
+        setIdleLearners(idlePayload.idleLearners || []);
+      }
+    } catch (error) {
+      console.error("Failed to load supervisor overview:", error);
+      toast.error("Could not load supervisor overview.");
+    } finally {
+      setLoadingOverview(false);
+    }
+  }, []);
 
   const loadPendingSubmissions = useCallback(async () => {
     setLoadingSubmissions(true);
@@ -97,8 +144,25 @@ export default function SupervisorPage() {
 
     if (status === "authenticated") {
       loadPendingSubmissions();
+      loadOverview();
     }
-  }, [status, session, router, loadPendingSubmissions]);
+  }, [status, session, router, loadPendingSubmissions, loadOverview]);
+
+  const totalLearners = learners.filter((learner) => learner.role === "learner").length;
+  const learnersWithCourses = learners.filter((learner) => learner.courseEnrollments.length > 0).length;
+  const avgProgress = learners.length
+    ? Math.round(
+        learners.reduce((sum, learner) => {
+          if (learner.courseEnrollments.length === 0) {
+            return sum;
+          }
+          const learnerAvg =
+            learner.courseEnrollments.reduce((acc, enrollment) => acc + (enrollment.progress || 0), 0) /
+            learner.courseEnrollments.length;
+          return sum + learnerAvg;
+        }, 0) / learners.length,
+      )
+    : 0;
 
   const submitGrade = async (submission: Submission) => {
     const rawScore = scores[submission.id] ?? String(submission.score ?? "");
@@ -163,6 +227,11 @@ export default function SupervisorPage() {
         icon={CheckSquare}
         title="Supervisor Grading"
         description="Review pending submissions and provide feedback."
+        action={
+          <Button variant="outline" onClick={() => window.open("/api/supervisor/reports", "_blank")}>
+            <FileDown className="mr-2 h-4 w-4" /> Export Report
+          </Button>
+        }
       />
 
       <TabHelperCard
@@ -173,6 +242,60 @@ export default function SupervisorPage() {
           "Graded entries are removed from pending queue.",
         ]}
       />
+
+      <div className="grid gap-4 md:grid-cols-3">
+        <Card>
+          <CardHeader className="pb-2">
+            <CardDescription>Total Learners</CardDescription>
+            <CardTitle className="flex items-center gap-2 text-2xl">
+              <Users className="h-5 w-5 text-primary" />
+              {loadingOverview ? "..." : totalLearners}
+            </CardTitle>
+          </CardHeader>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardDescription>Learners With Active Courses</CardDescription>
+            <CardTitle className="text-2xl">{loadingOverview ? "..." : learnersWithCourses}</CardTitle>
+          </CardHeader>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardDescription>Average Course Progress</CardDescription>
+            <CardTitle className="text-2xl">{loadingOverview ? "..." : `${avgProgress}%`}</CardTitle>
+          </CardHeader>
+        </Card>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <Clock3 className="h-5 w-5 text-amber-500" /> Idle Learners (No sessions in 3+ days)
+          </CardTitle>
+          <CardDescription>Use this list to follow up with learners who may be falling behind.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-2">
+          {loadingOverview ? (
+            <p className="text-sm text-muted-foreground">Loading idle learner status...</p>
+          ) : idleLearners.length === 0 ? (
+            <p className="text-sm text-emerald-600">Great job. No idle learners right now.</p>
+          ) : (
+            idleLearners.slice(0, 5).map((learner) => (
+              <div key={learner.id} className="flex items-center justify-between rounded-lg border p-3">
+                <div>
+                  <p className="font-medium text-sm">{learner.name || "Unnamed learner"}</p>
+                  <p className="text-xs text-muted-foreground">{learner.email || "No email"}</p>
+                </div>
+                <Badge variant="outline">
+                  {learner.lastSessionAt
+                    ? new Date(learner.lastSessionAt).toLocaleDateString()
+                    : "No sessions"}
+                </Badge>
+              </div>
+            ))
+          )}
+        </CardContent>
+      </Card>
 
       <Card>
         <CardContent className="grid gap-4 py-4 lg:grid-cols-[1fr_auto] lg:items-center">

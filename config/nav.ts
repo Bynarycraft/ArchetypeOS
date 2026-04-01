@@ -19,8 +19,9 @@ export const navConfig = {
         { label: "Notifications", href: "/notifications", icon: "Bell" },
     ],
     supervisor: [
-        { label: "Dashboard", href: "/dashboard", icon: "LayoutDashboard" },
+        { label: "Dashboard", href: "/supervisor", icon: "LayoutDashboard" },
         { label: "Grading", href: "/supervisor", icon: "ShieldCheck" },
+        { label: "Assign Courses", href: "/supervisor/assign-courses", icon: "BookOpen" },
         { label: "Roadmap", href: "/roadmap", icon: "Map" },
         { label: "Courses", href: "/courses", icon: "BookOpen" },
         { label: "Tests", href: "/tests", icon: "ClipboardList" },
