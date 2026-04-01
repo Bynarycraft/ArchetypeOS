@@ -80,22 +80,38 @@ export default function AdminUsersPage() {
         }
     };
 
-    const handleDecision = async (userId: string, decision: "accept" | "reject") => {
+    const handleDecision = async (userId: string, decision: "accept" | "reject" | "pending") => {
         setDeciding((prev) => ({ ...prev, [userId]: true }));
         try {
+            const shouldRequestPhone = window.confirm("Send SMS update as well? Click OK to provide a phone number, or Cancel to continue without SMS.");
+            let phone: string | undefined;
+
+            if (shouldRequestPhone) {
+                const input = window.prompt("Enter candidate phone number in international format (e.g. +2348012345678):");
+                phone = input?.trim() || undefined;
+            }
+
             const res = await fetch(`/api/admin/candidates/${userId}/decision`, {
                 method: "PATCH",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ decision }),
+                body: JSON.stringify({ decision, phone }),
             });
 
             if (!res.ok) throw new Error("Decision failed");
+
+            const data = await res.json();
 
             if (decision === "accept") {
                 setUsers(users.map(u => u.id === userId ? { ...u, role: "learner" } : u));
             }
 
-            toast.success(`Candidate ${decision}ed`);
+            const channelStatus = [
+                "In-app: sent",
+                `Email: ${data?.emailSent ? "sent" : "not sent"}`,
+                `SMS: ${data?.smsSent ? "sent" : "not sent"}`,
+            ].join(" | ");
+
+            toast.success(`Candidate marked as ${decision}. ${channelStatus}`);
         } catch (_err) {
             toast.error("Failed to update candidate");
         } finally {
@@ -163,6 +179,14 @@ export default function AdminUsersPage() {
                                                 onClick={() => handleDecision(user.id, "reject")}
                                             >
                                                 Reject
+                                            </Button>
+                                            <Button
+                                                size="sm"
+                                                variant="secondary"
+                                                disabled={deciding[user.id]}
+                                                onClick={() => handleDecision(user.id, "pending")}
+                                            >
+                                                Pending
                                             </Button>
                                         </div>
                                     )}
