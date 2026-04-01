@@ -158,7 +158,7 @@ export default function SupervisorPage() {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="mx-auto w-full max-w-6xl space-y-8">
       <PageHeader 
         icon={CheckSquare}
         title="Supervisor Grading"
@@ -175,11 +175,11 @@ export default function SupervisorPage() {
       />
 
       <Card>
-        <CardContent className="py-4 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <CardContent className="grid gap-4 py-4 lg:grid-cols-[1fr_auto] lg:items-center">
           <div className="text-sm text-muted-foreground">
             Pending submissions: <span className="font-semibold text-foreground">{totalPending}</span>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center justify-start gap-2 lg:justify-end">
             <label htmlFor="pageSize" className="text-sm text-muted-foreground">Page size</label>
             <select
               id="pageSize"
@@ -203,7 +203,7 @@ export default function SupervisorPage() {
             >
               Previous
             </Button>
-            <div className="text-sm min-w-[96px] text-center">
+            <div className="min-w-[96px] text-center text-sm">
               Page {currentPage} / {Math.max(totalPages, 1)}
             </div>
             <Button
@@ -260,8 +260,8 @@ export default function SupervisorPage() {
                     </Badge>
                   </div>
                 </CardHeader>
-                <CardContent className="grid gap-3 md:grid-cols-[220px_1fr_130px]">
-                  <div className="space-y-1">
+                <CardContent className="grid gap-4 lg:grid-cols-12 lg:items-end">
+                  <div className="space-y-1 lg:col-span-3">
                     <Input
                       type="number"
                       min={0}
@@ -280,27 +280,35 @@ export default function SupervisorPage() {
                       <p className="text-xs text-rose-600">Enter a score from 0 to 100.</p>
                     ) : null}
                   </div>
-                  <Input
-                    placeholder="Feedback"
-                    value={feedbacks[submission.id] ?? ""}
-                    disabled={isSubmitting}
-                    onChange={(e) =>
-                      setFeedbacks((prev) => ({
-                        ...prev,
-                        [submission.id]: e.target.value,
-                      }))
-                    }
-                  />
-                  <Button onClick={() => submitGrade(submission)} disabled={!isScoreValid || isSubmitting}>
-                    {isSubmitting ? (
-                      <span className="inline-flex items-center gap-2">
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                        Saving...
-                      </span>
-                    ) : (
-                      "Submit Grade"
-                    )}
-                  </Button>
+                  <div className="lg:col-span-6">
+                    <Input
+                      placeholder="Feedback"
+                      value={feedbacks[submission.id] ?? ""}
+                      disabled={isSubmitting}
+                      onChange={(e) =>
+                        setFeedbacks((prev) => ({
+                          ...prev,
+                          [submission.id]: e.target.value,
+                        }))
+                      }
+                    />
+                  </div>
+                  <div className="lg:col-span-3">
+                    <Button
+                      className="w-full"
+                      onClick={() => submitGrade(submission)}
+                      disabled={!isScoreValid || isSubmitting}
+                    >
+                      {isSubmitting ? (
+                        <span className="inline-flex items-center gap-2">
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          Saving...
+                        </span>
+                      ) : (
+                        "Submit Grade"
+                      )}
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
             );

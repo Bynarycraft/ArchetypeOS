@@ -30,6 +30,9 @@ model User {
   sessions              Session[]
   skills                Skill[]
   testResults           TestResult[]
+  certificates          Certificate[]
+  notifications         Notification[]
+  reflectionComments    ReflectionComment[]
   supervisor            User?              @relation("SupervisorRelation", fields: [supervisorId], references: [id])
   learners              User[]             @relation("SupervisorRelation")
 
@@ -120,6 +123,7 @@ model Course {
   roadmapId   String?
   moduleId    String?
   contentType String
+  content     String?            // Rich text or structured content
   contentUrl  String?
   duration    Int?
   version     String             @default("1.0")
@@ -131,6 +135,7 @@ model Course {
   roadmap     Roadmap?           @relation(fields: [roadmapId], references: [id])
   enrollments CourseEnrollment[]
   tests       Test[]
+  lessons     Lesson[]
 
   @@index([roadmapId])
   @@index([moduleId])
@@ -214,16 +219,17 @@ model LearningSession {
 }
 
 model Reflection {
-  id                String          @id @default(cuid())
+  id                String                @id @default(cuid())
   userId            String
-  learningSessionId String          @unique
+  learningSessionId String                @unique
   courseId          String?
   text              String
   mood              String?
-  createdAt         DateTime        @default(now())
-  updatedAt         DateTime        @updatedAt
-  learningSession   LearningSession @relation(fields: [learningSessionId], references: [id], onDelete: Cascade)
-  user              User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt         DateTime              @default(now())
+  updatedAt         DateTime              @updatedAt
+  learningSession   LearningSession       @relation(fields: [learningSessionId], references: [id], onDelete: Cascade)
+  user              User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  comments          ReflectionComment[]
 
   @@index([userId])
   @@index([courseId])
@@ -281,4 +287,72 @@ model AuditLog {
   @@index([userId])
   @@index([action])
   @@index([timestamp])
+}
+
+model Lesson {
+  id          String    @id @default(cuid())
+  courseId    String
+  order       Int
+  title       String
+  description String?
+  contentType String    @default("text") // text, video, pdf, resource, assignment
+  contentUrl  String?
+  duration    Int? // in minutes
+  isRequired  Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  course      Course    @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@index([courseId])
+  @@index([order])
+}
+
+model Certificate {
+  id              String    @id @default(cuid())
+  userId          String
+  courseId        String
+  certificateNumber String @unique
+  issuedAt        DateTime  @default(now())
+  expiresAt       DateTime?
+  verificationCode String @unique
+  isVerified      Boolean   @default(true)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([courseId])
+  @@index([verificationCode])
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  title     String
+  message   String
+  type      String   @default("info") // info, success, warning, error
+  priority  String   @default("normal") // low, normal, high, urgent
+  actionUrl String?
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  readAt    DateTime?
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([isRead])
+  @@index([createdAt])
+}
+
+model ReflectionComment {
+  id           String     @id @default(cuid())
+  reflectionId String
+  senderId     String
+  text         String
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  reflection   Reflection @relation(fields: [reflectionId], references: [id], onDelete: Cascade)
+  sender       User       @relation(fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@index([reflectionId])
+  @@index([senderId])
 }

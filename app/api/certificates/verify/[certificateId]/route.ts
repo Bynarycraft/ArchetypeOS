@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { formatCertificateNumber } from "@/lib/certificates";
 
 type Params = { params: Promise<{ certificateId: string }> };
 
@@ -8,16 +7,20 @@ export async function GET(_request: Request, { params }: Params) {
   try {
     const { certificateId } = await params;
 
-    const certificate = await prisma.auditLog.findFirst({
+    // Find certificate by ID or verificationCode
+    const certificate = await prisma.certificate.findFirst({
       where: {
-        id: certificateId,
-        action: "certificate",
+        OR: [
+          { id: certificateId },
+          { verificationCode: certificateId },
+        ],
       },
       select: {
         id: true,
-        timestamp: true,
-        targetId: true,
-        details: true,
+        certificateNumber: true,
+        issuedAt: true,
+        expiresAt: true,
+        isVerified: true,
         user: {
           select: {
             name: true,
@@ -31,22 +34,19 @@ export async function GET(_request: Request, { params }: Params) {
       return NextResponse.json({ valid: false, error: "Certificate not found" }, { status: 404 });
     }
 
-    const course = certificate.targetId
-      ? await prisma.course.findUnique({
-          where: { id: certificate.targetId },
-          select: { title: true },
-        })
-      : null;
+    // Check if certificate is expired
+    const isExpired = certificate.expiresAt && new Date(certificate.expiresAt) < new Date();
 
     return NextResponse.json({
-      valid: true,
+      valid: certificate.isVerified && !isExpired,
       certificate: {
         id: certificate.id,
-        certificateNumber: formatCertificateNumber(certificate.id, certificate.timestamp),
-        issuedAt: certificate.timestamp,
+        certificateNumber: certificate.certificateNumber,
+        issuedAt: certificate.issuedAt,
+        expiresAt: certificate.expiresAt,
         learnerName: certificate.user.name || certificate.user.email || "Learner",
-        courseTitle: course?.title || "Course Completion",
-        details: certificate.details,
+        isVerified: certificate.isVerified,
+        isExpired,
       },
     });
   } catch (error) {

@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { formatCertificateNumber } from "@/lib/certificates";
 
 export async function GET() {
   const session = await getServerSession(authOptions);
@@ -12,42 +11,65 @@ export async function GET() {
   }
 
   try {
-    const logs = await prisma.auditLog.findMany({
+    // Get certificates from the Certificate model
+    const certificates = await prisma.certificate.findMany({
       where: {
-        action: "certificate",
-        targetId: { not: null },
         userId: session.user.id,
       },
-      orderBy: { timestamp: "desc" },
+      orderBy: { issuedAt: "desc" },
+      select: {
+        id: true,
+        certificateNumber: true,
+        issuedAt: true,
+        expiresAt: true,
+        verificationCode: true,
+        isVerified: true,
+      },
     });
 
-    const courseIds = logs
-      .map((log) => log.targetId)
-      .filter((id): id is string => !!id);
-
-    const courses = courseIds.length
-      ? await prisma.course.findMany({
-          where: { id: { in: courseIds } },
-          select: { id: true, title: true },
-        })
-      : [];
-
-    const courseTitleById = new Map(courses.map((course) => [course.id, course.title]));
-
-    const enriched = logs.map((log) => ({
-      id: log.id,
-      issuedAt: log.timestamp,
-      targetId: log.targetId,
-      details: log.details,
-      certificateNumber: formatCertificateNumber(log.id, log.timestamp),
-      courseTitle: log.targetId ? courseTitleById.get(log.targetId) || "Course Completion" : "Course Completion",
-      verificationUrl: `/verify/certificate/${log.id}`,
-      downloadUrl: `/api/certificates/${log.id}/pdf`,
-    }));
-
-    return NextResponse.json(enriched);
+    return NextResponse.json(certificates);
   } catch (error) {
     console.error("Fetch certificates error:", error);
     return NextResponse.json({ error: "Failed to fetch certificates" }, { status: 500 });
+  }
+}
+
+export async function POST(req: Request) {
+  const session = await getServerSession(authOptions);
+
+  if (!session || session.user?.role?.toLowerCase() !== "admin") {
+    return NextResponse.json({ error: "Admin access required" }, { status: 403 });
+  }
+
+  try {
+    const body = (await req.json()) as { userId: string; courseId: string };
+    const { userId, courseId } = body;
+
+    // Verify user and course exist
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+
+    // Generate unique certificate number
+    const certificateNumber = `CERT-${Date.now()}-${Math.random().toString(36).substring(7).toUpperCase()}`;
+    const verificationCode = Math.random().toString(36).substring(2, 15).toUpperCase();
+
+    // Create certificate
+    const certificate = await prisma.certificate.create({
+      data: {
+        userId,
+        courseId,
+        certificateNumber,
+        verificationCode,
+        issuedAt: new Date(),
+        isVerified: true,
+      },
+    });
+
+    return NextResponse.json(certificate, { status: 201 });
+  } catch (error) {
+    console.error("Create certificate error:", error);
+    return NextResponse.json({ error: "Failed to create certificate" }, { status: 500 });
   }
 }

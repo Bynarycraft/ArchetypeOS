@@ -33,44 +33,80 @@ export async function GET(
       return NextResponse.json({ error: "Course not found" }, { status: 404 });
     }
 
-    // For now, return a standard lesson structure
-    // In future, store lessons as JSON in course or separate model
-    const lessons = [
-      {
-        id: `${courseId}-1`,
-        courseId,
-        order: 1,
-        title: "Course Overview",
-        description: "Understand course objectives and learning outcomes",
-        contentType: "text",
-        duration: 10,
+    // Get all lessons for this course, ordered by lesson order
+    const lessons = await prisma.lesson.findMany({
+      where: { courseId },
+      orderBy: { order: "asc" },
+      select: {
+        id: true,
+        courseId: true,
+        order: true,
+        title: true,
+        description: true,
+        contentType: true,
+        contentUrl: true,
+        duration: true,
         isRequired: true,
       },
-      {
-        id: `${courseId}-2`,
-        courseId,
-        order: 2,
-        title: "Main Content",
-        description: "Primary learning material and key concepts",
-        contentType: course.description ? "resource" : "text",
-        duration: 30,
-        isRequired: true,
-      },
-      {
-        id: `${courseId}-3`,
-        courseId,
-        order: 3,
-        title: "Practical Assignment",
-        description: "Apply what you learned with hands-on tasks",
-        contentType: "assignment",
-        duration: 20,
-        isRequired: false,
-      },
-    ];
+    });
 
     return NextResponse.json(lessons);
   } catch (error) {
     console.error("[courses/[courseId]/lessons] error:", error);
     return NextResponse.json({ error: "Failed to fetch lessons" }, { status: 500 });
+  }
+}
+
+/**
+ * POST /api/courses/[courseId]/lessons
+ * Create a new lesson for a course (admin only)
+ */
+export async function POST(
+  req: Request,
+  { params }: { params: Promise<{ courseId: string }> }
+) {
+  const session = await getServerSession(authOptions);
+
+  if (!session || session.user?.role?.toLowerCase() !== "admin") {
+    return NextResponse.json({ error: "Admin access required" }, { status: 403 });
+  }
+
+  try {
+    const { courseId } = await params;
+    const body = await req.json();
+    const { order, title, description, contentType, contentUrl, duration, isRequired } = body;
+
+    // Validate required fields
+    if (!title || typeof order !== "number") {
+      return NextResponse.json(
+        { error: "Missing required fields: title, order" },
+        { status: 400 }
+      );
+    }
+
+    // Check course exists
+    const course = await prisma.course.findUnique({ where: { id: courseId } });
+    if (!course) {
+      return NextResponse.json({ error: "Course not found" }, { status: 404 });
+    }
+
+    // Create lesson
+    const lesson = await prisma.lesson.create({
+      data: {
+        courseId,
+        order,
+        title,
+        description: description || null,
+        contentType: contentType || "text",
+        contentUrl: contentUrl || null,
+        duration: duration || null,
+        isRequired: isRequired !== false, // default to true
+      },
+    });
+
+    return NextResponse.json(lesson, { status: 201 });
+  } catch (error) {
+    console.error("[courses/[courseId]/lessons] POST error:", error);
+    return NextResponse.json({ error: "Failed to create lesson" }, { status: 500 });
   }
 }

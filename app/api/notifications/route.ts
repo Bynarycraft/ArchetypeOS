@@ -3,14 +3,6 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
-type NotificationDetails = {
-  title?: string;
-  message?: string;
-  priority?: string;
-  createdBy?: string;
-  createdAt?: string;
-};
-
 export async function GET() {
   const session = await getServerSession(authOptions);
 
@@ -19,34 +11,24 @@ export async function GET() {
   }
 
   try {
-    const logs = await prisma.auditLog.findMany({
+    // Get notifications from the Notification model
+    const notifications = await prisma.notification.findMany({
       where: {
-        action: "notification",
-        targetId: session.user.id,
+        userId: session.user.id,
       },
-      orderBy: { timestamp: "desc" },
-      take: 50,
-      include: {
-        user: {
-          select: { id: true, name: true, email: true },
-        },
+      orderBy: { createdAt: "desc" },
+      take: 50, // Return last 50 notifications
+      select: {
+        id: true,
+        title: true,
+        message: true,
+        type: true,
+        priority: true,
+        actionUrl: true,
+        isRead: true,
+        createdAt: true,
+        readAt: true,
       },
-    });
-
-    const notifications = logs.map((log: typeof logs[number]) => {
-      let details: NotificationDetails | null = null;
-      if (log.details) {
-        try {
-          details = JSON.parse(log.details) as NotificationDetails;
-        } catch (_error) {
-          details = { message: log.details };
-        }
-      }
-
-      return {
-        ...log,
-        details,
-      };
     });
 
     return NextResponse.json(notifications);
@@ -58,81 +40,97 @@ export async function GET() {
 
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
-  const role = session?.user?.role?.toLowerCase();
 
-  if (!session || (role !== "admin" && role !== "supervisor")) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
+  // Only admins and supervisors can create notifications for others
+  if (!session || !["admin", "supervisor"].includes(session.user?.role?.toLowerCase() || "")) {
+    return NextResponse.json({ error: "Insufficient permissions" }, { status: 403 });
   }
 
   try {
-    const body = await req.json();
-    const { receiverId, receiverIds, title, message, priority = "normal" } = body || {};
-
-    if (!message) {
-      return NextResponse.json({ error: "message is required" }, { status: 400 });
-    }
-
-    const details: NotificationDetails = {
-      title,
-      message,
-      priority,
-      createdBy: session.user.id,
-      createdAt: new Date().toISOString(),
+    const body = (await req.json()) as {
+      userId: string;
+      title: string;
+      message: string;
+      type?: string;
+      priority?: string;
+      actionUrl?: string;
     };
 
-    let targetIds: string[] = [];
+    const { userId, title, message, type = "info", priority = "normal", actionUrl } = body;
 
-    if (Array.isArray(receiverIds) && receiverIds.length > 0) {
-      targetIds = receiverIds as string[];
-    } else if (receiverId === "all") {
-      if (role === "supervisor") {
-        const learners = await prisma.user.findMany({
-          where: { supervisorId: session.user.id },
-          select: { id: true },
-        });
-        targetIds = learners.map((l: { id: string }) => l.id);
-      } else {
-        const learners = await prisma.user.findMany({
-          where: { role: { in: ["candidate", "learner"] } },
-          select: { id: true },
-        });
-        targetIds = learners.map((l: { id: string }) => l.id);
-      }
-    } else if (receiverId) {
-      targetIds = [receiverId];
+    // Validate required fields
+    if (!userId || !title || !message) {
+      return NextResponse.json(
+        { error: "Missing required fields: userId, title, message" },
+        { status: 400 }
+      );
     }
 
-    if (targetIds.length === 0) {
-      return NextResponse.json({ error: "No recipients resolved" }, { status: 400 });
+    // Verify user exists
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    if (targetIds.length === 1) {
-      const notification = await prisma.auditLog.create({
-        data: {
-          userId: session.user.id,
-          action: "notification",
-          targetType: "user",
-          targetId: targetIds[0],
-          details: JSON.stringify(details),
-        },
-      });
-
-      return NextResponse.json(notification, { status: 201 });
-    }
-
-    const result = await prisma.auditLog.createMany({
-      data: targetIds.map((targetId: string) => ({
-        userId: session.user.id,
-        action: "notification",
-        targetType: "user",
-        targetId,
-        details: JSON.stringify(details),
-      })),
+    // Create notification
+    const notification = await prisma.notification.create({
+      data: {
+        userId,
+        title,
+        message,
+        type,
+        priority,
+        actionUrl: actionUrl || null,
+      },
     });
 
-    return NextResponse.json({ count: result.count }, { status: 201 });
+    return NextResponse.json(notification, { status: 201 });
   } catch (error) {
     console.error("Create notification error:", error);
     return NextResponse.json({ error: "Failed to create notification" }, { status: 500 });
+  }
+}
+
+export async function PATCH() {
+  const session = await getServerSession(authOptions);
+
+  if (!session) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  try {
+    const body = (await req.json()) as {
+      notificationId: string;
+      isRead?: boolean;
+    };
+
+    const { notificationId, isRead } = body;
+
+    if (!notificationId) {
+      return NextResponse.json({ error: "Missing notificationId" }, { status: 400 });
+    }
+
+    // Check that user owns this notification
+    const notification = await prisma.notification.findUnique({
+      where: { id: notificationId },
+    });
+
+    if (!notification || notification.userId !== session.user.id) {
+      return NextResponse.json({ error: "Notification not found or unauthorized" }, { status: 404 });
+    }
+
+    // Update notification
+    const updated = await prisma.notification.update({
+      where: { id: notificationId },
+      data: {
+        isRead: isRead !== undefined ? isRead : true,
+        readAt: isRead !== false ? new Date() : null,
+      },
+    });
+
+    return NextResponse.json(updated);
+  } catch (error) {
+    console.error("Update notification error:", error);
+    return NextResponse.json({ error: "Failed to update notification" }, { status: 500 });
   }
 }

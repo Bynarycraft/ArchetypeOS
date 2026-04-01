@@ -48,24 +48,17 @@ export async function PATCH(
       });
     }
 
-    const details = {
-      title: "Application Update",
-      message:
-        decision === "accept"
-          ? "Congratulations! You have been accepted as a learner."
-          : "Your application is under review and has been marked as not accepted at this time.",
-      priority: decision === "accept" ? "low" : "normal",
-      createdBy: session.user.id,
-      createdAt: new Date().toISOString(),
-    };
-
-    await prisma.auditLog.create({
+    // Create proper notification using Notification model
+    await prisma.notification.create({
       data: {
-        userId: session.user.id,
-        action: "notification",
-        targetType: "user",
-        targetId: userId,
-        details: JSON.stringify(details),
+        userId: userId,
+        title: "Application Update",
+        message:
+          decision === "accept"
+            ? "Congratulations! You have been accepted as a learner. Your account is now active and you can access all learning features."
+            : "Your application status has been updated. Please check back soon.",
+        type: decision === "accept" ? "success" : "warning",
+        priority: "high",
       },
     });
 
