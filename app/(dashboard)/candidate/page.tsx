@@ -5,7 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { BookOpen, CheckCircle2, Target, Timer } from "lucide-react";
+import { Bell, BookOpen, CheckCircle2, Target, Timer } from "lucide-react";
 import Link from "next/link";
 
 export default async function CandidateHomePage() {
@@ -58,10 +58,7 @@ export default async function CandidateHomePage() {
 
   const totalHours = (totalMinutes / 60).toFixed(1);
 
-  const recommended = await prisma.course.findMany({
-    orderBy: { createdAt: "desc" },
-    take: 3,
-  });
+  const assignedCourses = user.courseEnrollments.map((enrollment: { course: { id: string; title: string; difficulty: string } }) => enrollment.course);
 
   return (
     <div className="space-y-10">
@@ -69,14 +66,21 @@ export default async function CandidateHomePage() {
         <div>
           <h1 className="text-4xl font-bold tracking-tight">Candidate Dashboard</h1>
           <p className="text-muted-foreground mt-2 text-base">
-            Complete assessments to unlock learner status.
+            Study your assigned course, take the assessment, and track your application status.
           </p>
         </div>
-        <Link href="/courses">
-          <Button className="rounded-xl px-6">
-            <Target className="mr-2 h-4 w-4" /> Browse Courses
-          </Button>
-        </Link>
+        <div className="flex items-center gap-3">
+          <Link href="/courses">
+            <Button className="rounded-xl px-6">
+              <Target className="mr-2 h-4 w-4" /> View Assigned Course
+            </Button>
+          </Link>
+          <Link href="/notifications">
+            <Button variant="outline" className="rounded-xl px-6">
+              <Bell className="mr-2 h-4 w-4" /> Status Updates
+            </Button>
+          </Link>
+        </div>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
@@ -128,13 +132,13 @@ export default async function CandidateHomePage() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg font-semibold">Recommended Courses</CardTitle>
+            <CardTitle className="text-lg font-semibold">Assigned Learning Path</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            {recommended.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No courses available yet.</p>
+            {assignedCourses.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No assigned course yet. Your coordinator will assign one shortly.</p>
             ) : (
-              recommended.map((course: { id: string; title: string; difficulty: string }) => (
+              assignedCourses.map((course: { id: string; title: string; difficulty: string }) => (
                 <Link key={course.id} href={`/courses/${course.id}`} className="block">
                   <div className="flex items-center justify-between rounded-lg border p-3 hover:bg-muted/50 transition-colors">
                     <div>

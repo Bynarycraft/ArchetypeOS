@@ -15,7 +15,19 @@ export default async function TestsPage() {
     redirect("/auth/signin");
   }
 
+  const role = session.user.role?.toLowerCase();
+  let candidateCourseIds: string[] = [];
+
+  if (role === "candidate") {
+    const enrollments = await prisma.courseEnrollment.findMany({
+      where: { userId: session.user.id },
+      select: { courseId: true },
+    });
+    candidateCourseIds = enrollments.map((enrollment) => enrollment.courseId);
+  }
+
   const tests = await prisma.test.findMany({
+    where: role === "candidate" ? { courseId: { in: candidateCourseIds } } : undefined,
     include: {
       course: {
         select: {

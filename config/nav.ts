@@ -1,11 +1,10 @@
 
 export const navConfig = {
     candidate: [
-        { label: "Dashboard", href: "/dashboard", icon: "LayoutDashboard" },
-        { label: "Roadmap", href: "/roadmap", icon: "Map" },
-        { label: "Courses", href: "/courses", icon: "BookOpen" },
+        { label: "Dashboard", href: "/candidate", icon: "LayoutDashboard" },
+        { label: "Assigned Course", href: "/courses", icon: "BookOpen" },
         { label: "Tests", href: "/tests", icon: "ClipboardList" },
-        { label: "Learning Tracker", href: "/tracker", icon: "Clock" },
+        { label: "Notifications", href: "/notifications", icon: "Bell" },
     ],
     learner: [
         { label: "Dashboard", href: "/dashboard", icon: "LayoutDashboard" },

@@ -75,16 +75,40 @@ export async function POST(
         const passingScore = test.passingScore || 70;
 
         // 2. Save result
-        const result = await prisma.testResult.create({
-            data: {
+        const inProgressAttempt = await prisma.testResult.findFirst({
+            where: {
                 testId,
                 userId: session.user.id,
-                answers: JSON.stringify(answers),
-                score,
-                status,
-                submittedAt: new Date(),
-            }
+                status: { in: ["in_progress", "IN_PROGRESS"] },
+            },
+            orderBy: { createdAt: "desc" },
+            select: { id: true, attemptNumber: true },
         });
+
+        const resolvedStartedAt = startedAt ? new Date(startedAt) : new Date();
+
+        const result = inProgressAttempt
+            ? await prisma.testResult.update({
+                where: { id: inProgressAttempt.id },
+                data: {
+                    answers: JSON.stringify(answers),
+                    score,
+                    status,
+                    startedAt: resolvedStartedAt,
+                    submittedAt: new Date(),
+                }
+            })
+            : await prisma.testResult.create({
+                data: {
+                    testId,
+                    userId: session.user.id,
+                    answers: JSON.stringify(answers),
+                    score,
+                    status,
+                    startedAt: resolvedStartedAt,
+                    submittedAt: new Date(),
+                }
+            });
 
         // 3. Logic: If passed, mark course enrollment as "completed"
         if (score >= passingScore) {
@@ -120,13 +144,6 @@ export async function POST(
                 });
             }
 
-            // 4. Update role to learner if candidate passed
-            if (role === "candidate") {
-                await prisma.user.update({
-                    where: { id: session.user.id },
-                    data: { role: "learner" }
-                });
-            }
         }
 
         return NextResponse.json(result);

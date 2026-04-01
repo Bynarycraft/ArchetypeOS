@@ -22,13 +22,13 @@ import { LoadingCard } from "@/components/layout/loading-skeleton";
 
 type NotificationItem = {
   id: string;
-  timestamp: string;
-  details?: {
-    title?: string;
-    message?: string;
-    priority?: string;
-  } | null;
-  user?: { name?: string | null; email?: string | null } | null;
+  title: string;
+  message: string;
+  type: string;
+  priority: string;
+  createdAt: string;
+  readAt?: string | null;
+  isRead: boolean;
 };
 
 type Learner = {
@@ -103,33 +103,40 @@ export default function NotificationsPage() {
     setSending(true);
     try {
       const isBulk = form.receiverId === "all";
-      const receiverIds = isBulk ? learners.map((learner) => learner.id) : undefined;
-      const res = await fetch("/api/notifications", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          receiverId: form.receiverId,
-          receiverIds,
-          title: form.title.trim() || undefined,
-          message: form.message.trim(),
-          priority: form.priority,
-        }),
-      });
+      const receiverIds = isBulk ? learners.map((learner) => learner.id) : [form.receiverId];
+      let sentCount = 0;
 
-      if (res.ok) {
-        if (isBulk) {
-          toast.success(`Notification sent to ${receiverIds?.length || 0} recipients`);
+      for (const userId of receiverIds) {
+        const res = await fetch("/api/notifications", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            userId,
+            title: form.title.trim() || "Update",
+            message: form.message.trim(),
+            priority: form.priority,
+            type: form.priority === "high" ? "warning" : "info",
+          }),
+        });
+
+        if (res.ok) {
+          sentCount += 1;
         } else {
-          toast.success("Notification sent");
+          const data = await res.json().catch(() => null);
+          throw new Error(data?.error || "Failed to send notification");
         }
-        setForm({ receiverId: "", title: "", message: "", priority: "normal" });
-        const refreshed = await fetch("/api/notifications");
-        if (refreshed.ok) {
-          setItems(await refreshed.json());
-        }
+      }
+
+      if (isBulk) {
+        toast.success(`Notification sent to ${sentCount} recipients`);
       } else {
-        const data = await res.json().catch(() => null);
-        toast.error(data?.error || "Failed to send notification");
+        toast.success("Notification sent");
+      }
+
+      setForm({ receiverId: "", title: "", message: "", priority: "normal" });
+      const refreshed = await fetch("/api/notifications");
+      if (refreshed.ok) {
+        setItems(await refreshed.json());
       }
     } catch (_error) {
       toast.error("Failed to send notification");
@@ -217,20 +224,20 @@ export default function NotificationsPage() {
               <CardHeader className="p-6 pb-2">
                 <div className="flex items-center justify-between gap-4">
                   <CardTitle className="text-lg font-black">
-                    {item.details?.title || "Update"}
+                    {item.title || "Update"}
                   </CardTitle>
-                  <Badge className={`text-[10px] uppercase tracking-widest ${priorityBadge(item.details?.priority)}`}>
-                    {item.details?.priority || "normal"}
+                  <Badge className={`text-[10px] uppercase tracking-widest ${priorityBadge(item.priority)}`}>
+                    {item.priority || "normal"}
                   </Badge>
                 </div>
               </CardHeader>
               <CardContent className="p-6 pt-2 space-y-2">
                 <p className="text-sm text-muted-foreground">
-                  {item.details?.message || "No message provided."}
+                  {item.message || "No message provided."}
                 </p>
                 <div className="flex items-center gap-2 text-[10px] uppercase tracking-widest text-muted-foreground">
                   <AlertTriangle className="h-3 w-3" />
-                  {item.user?.name || item.user?.email || "System"} · {new Date(item.timestamp).toLocaleString()}
+                  {item.type || "system"} · {new Date(item.createdAt).toLocaleString()}
                 </div>
               </CardContent>
             </Card>

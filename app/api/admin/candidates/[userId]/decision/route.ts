@@ -20,7 +20,7 @@ export async function PATCH(
     const body = await req.json();
     const { decision } = body || {};
 
-    if (!decision || !["accept", "reject"].includes(decision)) {
+    if (!decision || !["accept", "reject", "pending"].includes(decision)) {
       return NextResponse.json({ error: "Invalid decision" }, { status: 400 });
     }
 
@@ -56,8 +56,10 @@ export async function PATCH(
         message:
           decision === "accept"
             ? "Congratulations! You have been accepted as a learner. Your account is now active and you can access all learning features."
-            : "Your application status has been updated. Please check back soon.",
-        type: decision === "accept" ? "success" : "warning",
+            : decision === "reject"
+              ? "Your application has been reviewed and marked as rejected at this time."
+              : "Your application is currently pending review. We will notify you once a final decision is made.",
+        type: decision === "accept" ? "success" : decision === "reject" ? "error" : "info",
         priority: "high",
       },
     });

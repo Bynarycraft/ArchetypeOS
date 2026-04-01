@@ -37,13 +37,16 @@ export async function POST(
       return NextResponse.json({ error: "Not enrolled in this course" }, { status: 404 });
     }
 
-    // Get all lessons for this course (currently 3 standard lessons)
+    // Current course UI exposes 3 checklist lessons. Keep backend progress in sync with that flow.
     const totalLessons = 3;
+    const lessonNumber = parseInt(String(lessonId).replace(/[^0-9]/g, ""), 10);
 
-    // Calculate new progress - assuming 3 lessons, each is ~33%
-    // This is stored as a JSON string in the audit log for now
-    const lessonNumber = parseInt(lessonId.split("-")[1], 10);
-    const newProgress = Math.min(100, Math.round((lessonNumber / totalLessons) * 100));
+    if (!Number.isFinite(lessonNumber) || lessonNumber < 1 || lessonNumber > totalLessons) {
+      return NextResponse.json({ error: "Invalid lessonId" }, { status: 400 });
+    }
+
+    const completedLessons = Math.min(totalLessons, lessonNumber);
+    const newProgress = Math.min(100, Math.round((completedLessons / totalLessons) * 100));
 
     // Update enrollment progress
     const updated = await prisma.courseEnrollment.update({
