@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { sendCandidateStatusEmail } from "@/lib/email";
 
 export async function PATCH(
   req: Request,
@@ -26,7 +27,7 @@ export async function PATCH(
 
     const user = await prisma.user.findUnique({
       where: { id: userId },
-      select: { id: true, role: true, supervisorId: true },
+      select: { id: true, role: true, supervisorId: true, email: true, name: true },
     });
 
     if (!user) {
@@ -64,7 +65,21 @@ export async function PATCH(
       },
     });
 
-    return NextResponse.json({ success: true, decision });
+    let emailSent = false;
+    if (user.email) {
+      try {
+        const result = await sendCandidateStatusEmail({
+          to: user.email,
+          name: user.name,
+          decision,
+        });
+        emailSent = result.sent;
+      } catch (emailError) {
+        console.error("Candidate status email error:", emailError);
+      }
+    }
+
+    return NextResponse.json({ success: true, decision, emailSent });
   } catch (error) {
     console.error("Candidate decision error:", error);
     return NextResponse.json({ error: "Failed to update candidate" }, { status: 500 });
