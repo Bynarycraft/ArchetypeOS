@@ -27,7 +27,6 @@ import { getYouTubeEmbedUrl } from "@/lib/content-url";
 
 type CourseFormState = {
     title: string;
-    description: string;
     difficulty: string;
     contentType: string;
     contentUrl: string;
@@ -45,12 +44,12 @@ export default function EditCoursePage() {
     const [submitError, setSubmitError] = useState<string | null>(null);
     const [formData, setFormData] = useState<CourseFormState>({
         title: "",
-        description: "",
         difficulty: "beginner",
         contentType: "video",
         contentUrl: "",
         duration: "",
     });
+    const [descriptionValue, setDescriptionValue] = useState("");
     const [videoValidationStatus, setVideoValidationStatus] = useState<"idle" | "checking" | "valid" | "invalid">("idle");
     const [videoValidationMessage, setVideoValidationMessage] = useState<string>("");
 
@@ -89,12 +88,12 @@ export default function EditCoursePage() {
                 const course = await response.json();
                 setFormData({
                     title: course.title ?? "",
-                    description: course.description ?? "",
                     difficulty: course.difficulty ?? "beginner",
                     contentType: course.contentType ?? "video",
                     contentUrl: course.contentUrl ?? "",
                     duration: typeof course.duration === "number" ? String(course.duration) : "",
                 });
+                setDescriptionValue(course.description ?? "");
             } catch (error) {
                 console.error("Failed to load course:", error);
                 setSubmitError(error instanceof Error ? error.message : "Failed to load course");
@@ -161,9 +160,7 @@ export default function EditCoursePage() {
         };
     }, [formData.contentType, formData.contentUrl]);
 
-    const handleChange = (
-        e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-    ) => {
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
         setFormData((prev) => ({ ...prev, [name]: value }));
     };
@@ -176,6 +173,10 @@ export default function EditCoursePage() {
         e.preventDefault();
         setSaving(true);
         setSubmitError(null);
+
+        const submittedForm = e.currentTarget as HTMLFormElement;
+        const submittedData = new FormData(submittedForm);
+        const description = (submittedData.get("description") as string | null)?.trim() || "";
 
         if (formData.contentType === "video" && formData.contentUrl && !getYouTubeEmbedUrl(formData.contentUrl)) {
             setSubmitError("Use a valid YouTube link for video courses. Supported formats include youtube.com/watch and youtu.be links.");
@@ -195,6 +196,7 @@ export default function EditCoursePage() {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     ...formData,
+                    description,
                     duration: formData.duration ? parseInt(formData.duration, 10) : null,
                 }),
             });
@@ -292,8 +294,7 @@ export default function EditCoursePage() {
                                 id="description"
                                 name="description"
                                 placeholder="Describe the course content, learning outcomes, and what students will learn..."
-                                value={formData.description}
-                                onChange={handleChange}
+                                defaultValue={descriptionValue}
                                 rows={5}
                                 className="w-full rounded-xl border border-border/40 px-4 py-3 text-sm bg-background/50 focus:outline-none focus:border-primary transition-colors resize-none"
                             />

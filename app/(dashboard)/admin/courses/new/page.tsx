@@ -26,7 +26,6 @@ export default function NewCoursePage() {
     const [submitError, setSubmitError] = useState<string | null>(null);
     const [formData, setFormData] = useState({
         title: "",
-        description: "",
         difficulty: "beginner",
         contentType: "video",
         contentUrl: "",
@@ -117,9 +116,7 @@ export default function NewCoursePage() {
 
     const authReady = status === "authenticated" && session?.user?.role === "admin";
 
-    const handleChange = (
-        e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-    ) => {
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
         setFormData((prev) => ({ ...prev, [name]: value }));
     };
@@ -132,6 +129,10 @@ export default function NewCoursePage() {
         e.preventDefault();
         setLoading(true);
         setSubmitError(null);
+
+        const submittedForm = e.currentTarget as HTMLFormElement;
+        const submittedData = new FormData(submittedForm);
+        const description = (submittedData.get("description") as string | null)?.trim() || "";
 
         if (formData.contentType === "video" && formData.contentUrl && !getYouTubeEmbedUrl(formData.contentUrl)) {
             setSubmitError("Use a valid YouTube link for video courses. Supported formats include youtube.com/watch and youtu.be links.");
@@ -151,6 +152,7 @@ export default function NewCoursePage() {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     ...formData,
+                    description,
                     duration: formData.duration ? parseInt(formData.duration) : null,
                 }),
             });
@@ -253,8 +255,6 @@ export default function NewCoursePage() {
                                 id="description"
                                 name="description"
                                 placeholder="Describe the course content, learning outcomes, and what students will learn..."
-                                value={formData.description}
-                                onChange={handleChange}
                                 rows={5}
                                 className="w-full rounded-xl border border-border/40 px-4 py-3 text-sm bg-background/50 focus:outline-none focus:border-primary transition-colors resize-none"
                             />
