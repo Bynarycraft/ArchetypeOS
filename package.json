@@ -10,7 +10,8 @@
     "start": "next start",
     "lint": "eslint",
     "postinstall": "prisma generate",
-    "seed": "ts-node prisma/seed.ts"
+    "seed": "ts-node prisma/seed.ts",
+    "reset:test-users": "ts-node prisma/seed.ts"
   },
   "prisma": {
     "seed": "npx ts-node --compiler-options {\"module\":\"commonjs\"} prisma/seed.ts"
