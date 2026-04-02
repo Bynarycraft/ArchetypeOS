@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,15 +25,9 @@ export default function AdminTestsPage() {
   const [tests, setTests] = useState<Test[]>([]);
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
-  const [form, setForm] = useState({
-    courseId: "",
-    title: "",
-    description: "",
-    type: "MCQ",
-    passingScore: "70",
-    timeLimit: "",
-    questions: "",
-  });
+  const [creating, setCreating] = useState(false);
+  const [courseId, setCourseId] = useState("");
+  const formRef = useRef<HTMLFormElement | null>(null);
 
   useEffect(() => {
     const load = async () => {
@@ -59,20 +53,31 @@ export default function AdminTestsPage() {
     load();
   }, []);
 
-  const handleCreate = async () => {
-    if (!form.courseId) {
+  const handleCreate = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    if (!courseId) {
       toast.error("Select a course before creating a test");
       return;
     }
 
-    if (!form.title.trim()) {
+    const submittedForm = event.currentTarget;
+    const submittedData = new FormData(submittedForm);
+    const title = (submittedData.get("title") as string | null)?.trim() || "";
+    const description = (submittedData.get("description") as string | null)?.trim() || "";
+    const type = (submittedData.get("type") as string | null)?.trim() || "MCQ";
+    const passingScore = (submittedData.get("passingScore") as string | null)?.trim() || "70";
+    const timeLimit = (submittedData.get("timeLimit") as string | null)?.trim() || "";
+    const questionsRaw = (submittedData.get("questions") as string | null)?.trim() || "";
+
+    if (!title) {
       toast.error("Test title is required");
       return;
     }
 
     let parsedQuestions: unknown;
     try {
-      parsedQuestions = JSON.parse(form.questions);
+      parsedQuestions = JSON.parse(questionsRaw);
     } catch (_error) {
       toast.error("Questions must be valid JSON");
       return;
@@ -84,16 +89,17 @@ export default function AdminTestsPage() {
     }
 
     const payload = {
-      courseId: form.courseId,
-      title: form.title,
-      description: form.description || null,
-      type: form.type,
-      passingScore: Number(form.passingScore || 70),
-      timeLimit: form.timeLimit ? Number(form.timeLimit) : null,
+      courseId,
+      title,
+      description: description || null,
+      type,
+      passingScore: Number(passingScore || 70),
+      timeLimit: timeLimit ? Number(timeLimit) : null,
       questions: parsedQuestions,
     };
 
     try {
+      setCreating(true);
       const res = await fetch("/api/admin/tests", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -103,15 +109,8 @@ export default function AdminTestsPage() {
       if (res.ok) {
         const newTest = await res.json();
         setTests((prev) => [newTest, ...prev]);
-        setForm({
-          courseId: "",
-          title: "",
-          description: "",
-          type: "MCQ",
-          passingScore: "70",
-          timeLimit: "",
-          questions: "",
-        });
+        submittedForm.reset();
+        setCourseId("");
         toast.success("Test created");
       } else {
         const data = await res.json().catch(() => null);
@@ -119,6 +118,8 @@ export default function AdminTestsPage() {
       }
     } catch (_error) {
       toast.error("Failed to create test");
+    } finally {
+      setCreating(false);
     }
   };
 
@@ -134,54 +135,35 @@ export default function AdminTestsPage() {
           <CardTitle className="text-lg font-black">Create New Test</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <Select value={form.courseId} onValueChange={(value) => setForm((prev) => ({ ...prev, courseId: value }))}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select course" />
-            </SelectTrigger>
-            <SelectContent>
-              {courses.map((course) => (
-                <SelectItem key={course.id} value={course.id}>
-                  {course.title}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Input
-            placeholder="Test title"
-            value={form.title}
-            onChange={(event) => setForm((prev) => ({ ...prev, title: event.target.value }))}
-          />
-          <Input
-            placeholder="Short description"
-            value={form.description}
-            onChange={(event) => setForm((prev) => ({ ...prev, description: event.target.value }))}
-          />
-          <div className="grid gap-4 md:grid-cols-3">
-            <Input
-              placeholder="Passing score"
-              value={form.passingScore}
-              onChange={(event) => setForm((prev) => ({ ...prev, passingScore: event.target.value }))}
+          <form ref={formRef} onSubmit={handleCreate} className="space-y-4">
+            <Select value={courseId} onValueChange={setCourseId}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select course" />
+              </SelectTrigger>
+              <SelectContent>
+                {courses.map((course) => (
+                  <SelectItem key={course.id} value={course.id}>
+                    {course.title}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Input name="title" placeholder="Test title" />
+            <Input name="description" placeholder="Short description" />
+            <div className="grid gap-4 md:grid-cols-3">
+              <Input name="passingScore" placeholder="Passing score" defaultValue="70" />
+              <Input name="timeLimit" placeholder="Time limit (minutes)" />
+              <Input name="type" placeholder="Type" defaultValue="MCQ" />
+            </div>
+            <Textarea
+              name="questions"
+              placeholder='Questions JSON (e.g. [{"q":"Question?","options":["A","B"],"correct":0}])'
+              className="min-h-[160px]"
             />
-            <Input
-              placeholder="Time limit (minutes)"
-              value={form.timeLimit}
-              onChange={(event) => setForm((prev) => ({ ...prev, timeLimit: event.target.value }))}
-            />
-            <Input
-              placeholder="Type"
-              value={form.type}
-              onChange={(event) => setForm((prev) => ({ ...prev, type: event.target.value }))}
-            />
-          </div>
-          <Textarea
-            placeholder='Questions JSON (e.g. [{"q":"Question?","options":["A","B"],"correct":0}])'
-            className="min-h-[160px]"
-            value={form.questions}
-            onChange={(event) => setForm((prev) => ({ ...prev, questions: event.target.value }))}
-          />
-          <Button onClick={handleCreate} className="rounded-2xl font-black">
-            Create Test
-          </Button>
+            <Button type="submit" disabled={creating} className="rounded-2xl font-black">
+              {creating ? "Creating..." : "Create Test"}
+            </Button>
+          </form>
         </CardContent>
       </Card>
 
