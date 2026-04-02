@@ -13,13 +13,21 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export default function SignInPage() {
     const router = useRouter();
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        const form = e.currentTarget as HTMLFormElement;
+        const formData = new FormData(form);
+        const email = String(formData.get("email") || "").trim();
+        const password = String(formData.get("password") || "");
+
+        if (!email || !password) {
+            setError("Enter both email and password.");
+            return;
+        }
+
         setLoading(true);
         setError(null);
 
@@ -75,10 +83,14 @@ export default function SignInPage() {
                                 <Label htmlFor="email">Email</Label>
                                 <Input
                                     id="email"
+                                    name="email"
                                     type="email"
                                     placeholder="name@example.com"
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
+                                    autoComplete="username"
+                                    inputMode="email"
+                                    autoCapitalize="none"
+                                    spellCheck={false}
+                                    autoFocus
                                     required
                                 />
                             </div>
@@ -86,10 +98,10 @@ export default function SignInPage() {
                                 <Label htmlFor="password">Password</Label>
                                 <Input
                                     id="password"
+                                    name="password"
                                     type="password"
                                     placeholder="Your password"
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
+                                    autoComplete="current-password"
                                     required
                                 />
                             </div>
