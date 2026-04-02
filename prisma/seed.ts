@@ -92,6 +92,50 @@ async function main() {
   })
   console.log('✓ Created learner user:', learner2.email)
 
+  const learner3 = await prisma.user.upsert({
+    where: { email: 'learner3@archetype.local' },
+    update: {
+      name: 'Dana Learner',
+      password: hashedLearnerPassword,
+      role: 'learner',
+      archetype: 'Maker',
+      supervisorId: supervisor.id,
+      totalLearningHours: 12
+    },
+    create: {
+      name: 'Dana Learner',
+      email: 'learner3@archetype.local',
+      password: hashedLearnerPassword,
+      role: 'learner',
+      archetype: 'Maker',
+      supervisorId: supervisor.id,
+      totalLearningHours: 12
+    }
+  })
+  console.log('✓ Created learner user:', learner3.email)
+
+  const learner4 = await prisma.user.upsert({
+    where: { email: 'learner4@archetype.local' },
+    update: {
+      name: 'Evan Learner',
+      password: hashedLearnerPassword,
+      role: 'learner',
+      archetype: 'Architect',
+      supervisorId: supervisor.id,
+      totalLearningHours: 4
+    },
+    create: {
+      name: 'Evan Learner',
+      email: 'learner4@archetype.local',
+      password: hashedLearnerPassword,
+      role: 'learner',
+      archetype: 'Architect',
+      supervisorId: supervisor.id,
+      totalLearningHours: 4
+    }
+  })
+  console.log('✓ Created learner user:', learner4.email)
+
   // Create Candidate users
   const hashedCandidatePassword = await bcrypt.hash('candidate123', 10)
   const candidate1 = await prisma.user.upsert({
@@ -672,6 +716,8 @@ Use decision logs, action trackers, and weekly review cadences to prevent ambigu
     { userId: learner2.id, courseId: 'course-7', status: 'in_progress', progress: 60 },
     { userId: learner2.id, courseId: _course9.id, status: 'in_progress', progress: 20 },
     { userId: learner2.id, courseId: _course10.id, status: 'started', progress: 5 },
+    { userId: learner3.id, courseId: course4.id, status: 'in_progress', progress: 72 },
+    { userId: learner4.id, courseId: _course6.id, status: 'started', progress: 12 },
     { userId: candidate1.id, courseId: course1.id, status: 'started', progress: 15 }
   ]
 
@@ -777,6 +823,18 @@ Use decision logs, action trackers, and weekly review cadences to prevent ambigu
       startTime: yesterday,
       endTime: new Date(yesterday.getTime() + 4 * 60 * 60 * 1000),
       durationMinutes: 240
+    }
+  })
+
+  await prisma.learningSession.upsert({
+    where: { id: 'session-3' },
+    update: {},
+    create: {
+      id: 'session-3',
+      userId: learner3.id,
+      status: 'active',
+      startTime: new Date(now.getTime() - 90 * 60 * 1000),
+      durationMinutes: 90
     }
   })
 
@@ -1017,6 +1075,53 @@ Use decision logs, action trackers, and weekly review cadences to prevent ambigu
     }
   })
 
+  await prisma.testResult.upsert({
+    where: {
+      userId_testId_attemptNumber: {
+        userId: learner3.id,
+        testId: test2.id,
+        attemptNumber: 1,
+      }
+    },
+    update: {},
+    create: {
+      userId: learner3.id,
+      testId: test2.id,
+      score: 0,
+      status: 'submitted',
+      answers: JSON.stringify({
+        0: 'Composition reduces prop drilling in feature shells.',
+        1: 'Profiling helps identify wasted renders and expensive effects.',
+      }),
+      startedAt: new Date(now.getTime() - 3 * 60 * 60 * 1000),
+      submittedAt: new Date(now.getTime() - 2 * 60 * 60 * 1000),
+      attemptNumber: 1,
+    }
+  })
+
+  await prisma.testResult.upsert({
+    where: {
+      userId_testId_attemptNumber: {
+        userId: learner4.id,
+        testId: test1.id,
+        attemptNumber: 1,
+      }
+    },
+    update: {},
+    create: {
+      userId: learner4.id,
+      testId: test1.id,
+      score: 62,
+      status: 'graded',
+      answers: JSON.stringify([0, 1]),
+      feedback: 'Solid understanding, but review hooks and state flow.',
+      gradedBy: supervisor.id,
+      gradedAt: new Date(now.getTime() - 2 * 60 * 60 * 1000),
+      submittedAt: new Date(now.getTime() - 3 * 60 * 60 * 1000),
+      attemptNumber: 1,
+    }
+  })
+
   console.log('✓ Created expanded test results')
 
   // Keep enrollment progress aligned with successful completions
@@ -1200,6 +1305,29 @@ Use decision logs, action trackers, and weekly review cadences to prevent ambigu
       create: notification,
     })
   }
+
+  await prisma.notification.upsert({
+    where: { id: 'notification-5' },
+    update: {
+      userId: learner3.id,
+      title: 'Manual review pending',
+      message: 'Your Advanced React Patterns Practical submission is waiting for supervisor grading.',
+      type: 'warning',
+      priority: 'high',
+      actionUrl: '/tests',
+      isRead: false,
+    },
+    create: {
+      id: 'notification-5',
+      userId: learner3.id,
+      title: 'Manual review pending',
+      message: 'Your Advanced React Patterns Practical submission is waiting for supervisor grading.',
+      type: 'warning',
+      priority: 'high',
+      actionUrl: '/tests',
+      isRead: false,
+    }
+  })
 
   console.log('✓ Created notifications')
 
