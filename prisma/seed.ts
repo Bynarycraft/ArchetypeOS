@@ -811,6 +811,491 @@ Use decision logs, action trackers, and weekly review cadences to prevent ambigu
 
   console.log('✓ Created skills')
 
+  // Create Lessons for key courses so learner flows have content structure
+  const lessons = [
+    {
+      id: 'lesson-course-1-1',
+      courseId: course1.id,
+      order: 1,
+      title: 'React Components and JSX',
+      description: 'Understand component composition and JSX syntax.',
+      contentType: 'video',
+      contentUrl: 'https://www.youtube.com/watch?v=Ke90Tje7VS0',
+      duration: 35,
+    },
+    {
+      id: 'lesson-course-1-2',
+      courseId: course1.id,
+      order: 2,
+      title: 'State, Props, and Data Flow',
+      description: 'Learn unidirectional data flow and state management basics.',
+      contentType: 'video',
+      contentUrl: 'https://www.youtube.com/watch?v=Ke90Tje7VS0',
+      duration: 40,
+    },
+    {
+      id: 'lesson-course-1-3',
+      courseId: course1.id,
+      order: 3,
+      title: 'Hooks and Side Effects',
+      description: 'Use useState and useEffect in practical patterns.',
+      contentType: 'video',
+      contentUrl: 'https://www.youtube.com/watch?v=Ke90Tje7VS0',
+      duration: 45,
+    },
+    {
+      id: 'lesson-course-7-1',
+      courseId: 'course-7',
+      order: 1,
+      title: 'Hierarchy and Typography',
+      description: 'Establish visual hierarchy and readable type scales.',
+      contentType: 'image',
+      contentUrl: 'https://images.unsplash.com/photo-1558655146-d09347e92766?auto=format&fit=crop&w=1280&q=80',
+      duration: 25,
+    },
+    {
+      id: 'lesson-course-7-2',
+      courseId: 'course-7',
+      order: 2,
+      title: 'Spacing and Layout Rhythm',
+      description: 'Use spacing tokens to improve scannability.',
+      contentType: 'image',
+      contentUrl: 'https://images.unsplash.com/photo-1558655146-d09347e92766?auto=format&fit=crop&w=1280&q=80',
+      duration: 20,
+    },
+  ]
+
+  for (const lesson of lessons) {
+    await prisma.lesson.upsert({
+      where: { id: lesson.id },
+      update: {
+        courseId: lesson.courseId,
+        order: lesson.order,
+        title: lesson.title,
+        description: lesson.description,
+        contentType: lesson.contentType,
+        contentUrl: lesson.contentUrl,
+        duration: lesson.duration,
+      },
+      create: lesson,
+    })
+  }
+
+  console.log('✓ Created lessons')
+
+  // Create additional tests to cover graded + pending review scenarios
+  const test2 = await prisma.test.upsert({
+    where: { id: 'test-2' },
+    update: {},
+    create: {
+      id: 'test-2',
+      courseId: course2.id,
+      title: 'Advanced React Patterns Practical',
+      description: 'Manual review assessment for advanced React patterns.',
+      type: 'essay',
+      timeLimit: 90,
+      attemptLimit: 2,
+      passingScore: 75,
+      questions: JSON.stringify([
+        {
+          id: 1,
+          type: 'essay',
+          question: 'Explain when to use context versus composition in React.',
+        },
+        {
+          id: 2,
+          type: 'essay',
+          question: 'Describe a performance optimization strategy and tradeoffs.',
+        }
+      ]),
+      gradingType: 'manual',
+    }
+  })
+
+  const test3 = await prisma.test.upsert({
+    where: { id: 'test-3' },
+    update: {},
+    create: {
+      id: 'test-3',
+      courseId: 'course-7',
+      title: 'UI Pattern Recognition Quiz',
+      description: 'Quick MCQ assessment for UI hierarchy and spacing.',
+      type: 'mcq',
+      timeLimit: 30,
+      attemptLimit: 3,
+      passingScore: 70,
+      questions: JSON.stringify([
+        {
+          id: 1,
+          type: 'mcq',
+          question: 'Which element most strongly communicates hierarchy?',
+          options: ['Padding only', 'Heading weight and size', 'Random color changes', 'Icon count'],
+          correctAnswer: 1,
+        },
+        {
+          id: 2,
+          type: 'mcq',
+          question: 'What spacing approach improves consistency?',
+          options: ['Arbitrary values', 'Token-based spacing scale', 'No spacing system', 'Zero margins'],
+          correctAnswer: 1,
+        }
+      ]),
+      gradingType: 'auto',
+    }
+  })
+
+  console.log('✓ Created additional tests')
+
+  // Create multiple assessment outcomes: graded pass, graded fail, submitted pending
+  await prisma.testResult.upsert({
+    where: {
+      userId_testId_attemptNumber: {
+        userId: learner1.id,
+        testId: test2.id,
+        attemptNumber: 1,
+      }
+    },
+    update: {},
+    create: {
+      userId: learner1.id,
+      testId: test2.id,
+      score: 0,
+      status: 'submitted',
+      answers: JSON.stringify({
+        0: 'Use composition first, context for shared global concerns.',
+        1: 'Memoization and splitting expensive renders improve responsiveness.',
+      }),
+      startedAt: new Date(yesterday.getTime() + 90 * 60 * 1000),
+      submittedAt: new Date(yesterday.getTime() + 130 * 60 * 1000),
+      attemptNumber: 1,
+    }
+  })
+
+  await prisma.testResult.upsert({
+    where: {
+      userId_testId_attemptNumber: {
+        userId: learner2.id,
+        testId: test3.id,
+        attemptNumber: 1,
+      }
+    },
+    update: {},
+    create: {
+      userId: learner2.id,
+      testId: test3.id,
+      score: 50,
+      status: 'graded',
+      answers: JSON.stringify([0, 1]),
+      feedback: 'Review hierarchy fundamentals and retake.',
+      gradedBy: supervisor.id,
+      gradedAt: new Date(now.getTime() - 12 * 60 * 60 * 1000),
+      submittedAt: new Date(now.getTime() - 13 * 60 * 60 * 1000),
+      attemptNumber: 1,
+    }
+  })
+
+  await prisma.testResult.upsert({
+    where: {
+      userId_testId_attemptNumber: {
+        userId: learner2.id,
+        testId: test3.id,
+        attemptNumber: 2,
+      }
+    },
+    update: {},
+    create: {
+      userId: learner2.id,
+      testId: test3.id,
+      score: 100,
+      status: 'graded',
+      answers: JSON.stringify([1, 1]),
+      feedback: 'Great improvement. Solid pattern recognition.',
+      gradedBy: supervisor.id,
+      gradedAt: new Date(now.getTime() - 6 * 60 * 60 * 1000),
+      submittedAt: new Date(now.getTime() - 7 * 60 * 60 * 1000),
+      attemptNumber: 2,
+    }
+  })
+
+  console.log('✓ Created expanded test results')
+
+  // Keep enrollment progress aligned with successful completions
+  await prisma.courseEnrollment.updateMany({
+    where: { userId: learner2.id, courseId: 'course-7' },
+    data: { status: 'completed', progress: 100, completedAt: new Date(now.getTime() - 5 * 60 * 60 * 1000) }
+  })
+
+  // Create reflections for supervisor coaching flows
+  await prisma.reflection.upsert({
+    where: { learningSessionId: 'session-1' },
+    update: {
+      userId: learner1.id,
+      text: 'Implemented reusable hooks and reduced duplicate UI logic in the React module.',
+      mood: 'focused',
+      courseId: course2.id,
+    },
+    create: {
+      userId: learner1.id,
+      learningSessionId: 'session-1',
+      text: 'Implemented reusable hooks and reduced duplicate UI logic in the React module.',
+      mood: 'focused',
+      courseId: course2.id,
+    }
+  })
+
+  await prisma.reflection.upsert({
+    where: { learningSessionId: 'session-2' },
+    update: {
+      userId: learner2.id,
+      text: 'Practiced UI hierarchy and spacing rules; second quiz attempt improved significantly.',
+      mood: 'motivated',
+      courseId: 'course-7',
+    },
+    create: {
+      userId: learner2.id,
+      learningSessionId: 'session-2',
+      text: 'Practiced UI hierarchy and spacing rules; second quiz attempt improved significantly.',
+      mood: 'motivated',
+      courseId: 'course-7',
+    }
+  })
+
+  console.log('✓ Created reflections')
+
+  // Add supervisor comments on reflections
+  const reflectionOne = await prisma.reflection.findUnique({ where: { learningSessionId: 'session-1' } })
+  const reflectionTwo = await prisma.reflection.findUnique({ where: { learningSessionId: 'session-2' } })
+
+  if (reflectionOne) {
+    await prisma.reflectionComment.upsert({
+      where: { id: 'reflection-comment-1' },
+      update: {
+        reflectionId: reflectionOne.id,
+        senderId: supervisor.id,
+        text: 'Strong progress. Next step is to document tradeoffs in your hook design.',
+      },
+      create: {
+        id: 'reflection-comment-1',
+        reflectionId: reflectionOne.id,
+        senderId: supervisor.id,
+        text: 'Strong progress. Next step is to document tradeoffs in your hook design.',
+      }
+    })
+  }
+
+  if (reflectionTwo) {
+    await prisma.reflectionComment.upsert({
+      where: { id: 'reflection-comment-2' },
+      update: {
+        reflectionId: reflectionTwo.id,
+        senderId: supervisor.id,
+        text: 'Excellent resilience on retake. Keep reinforcing spacing rules with examples.',
+      },
+      create: {
+        id: 'reflection-comment-2',
+        reflectionId: reflectionTwo.id,
+        senderId: supervisor.id,
+        text: 'Excellent resilience on retake. Keep reinforcing spacing rules with examples.',
+      }
+    })
+  }
+
+  console.log('✓ Created reflection comments')
+
+  // Create directional feedback entries (supervisor <-> learners)
+  await prisma.feedback.upsert({
+    where: { id: 'feedback-1' },
+    update: {
+      senderId: supervisor.id,
+      receiverId: learner1.id,
+      courseId: course2.id,
+      type: 'coaching',
+      text: 'Good architectural reasoning. Improve clarity in performance tradeoff explanations.',
+      rating: 4,
+    },
+    create: {
+      id: 'feedback-1',
+      senderId: supervisor.id,
+      receiverId: learner1.id,
+      courseId: course2.id,
+      type: 'coaching',
+      text: 'Good architectural reasoning. Improve clarity in performance tradeoff explanations.',
+      rating: 4,
+      isPrivate: false,
+    }
+  })
+
+  await prisma.feedback.upsert({
+    where: { id: 'feedback-2' },
+    update: {
+      senderId: learner2.id,
+      receiverId: supervisor.id,
+      courseId: 'course-7',
+      type: 'comment',
+      text: 'The feedback on hierarchy made the retake much easier. Thank you.',
+      rating: 5,
+    },
+    create: {
+      id: 'feedback-2',
+      senderId: learner2.id,
+      receiverId: supervisor.id,
+      courseId: 'course-7',
+      type: 'comment',
+      text: 'The feedback on hierarchy made the retake much easier. Thank you.',
+      rating: 5,
+      isPrivate: false,
+    }
+  })
+
+  console.log('✓ Created feedback threads')
+
+  // Create notifications to make inboxes realistic
+  const notifications = [
+    {
+      id: 'notification-1',
+      userId: learner1.id,
+      title: 'Assessment submitted',
+      message: 'Your Advanced React Patterns Practical assessment is awaiting review.',
+      type: 'info',
+      priority: 'normal',
+      actionUrl: '/tests',
+      isRead: false,
+    },
+    {
+      id: 'notification-2',
+      userId: learner2.id,
+      title: 'Assessment graded',
+      message: 'Your UI Pattern Recognition Quiz retake has been graded: 100%.',
+      type: 'success',
+      priority: 'normal',
+      actionUrl: '/tests',
+      isRead: false,
+    },
+    {
+      id: 'notification-3',
+      userId: supervisor.id,
+      title: 'Pending grading queue',
+      message: 'There is 1 submitted assessment pending review.',
+      type: 'warning',
+      priority: 'high',
+      actionUrl: '/supervisor',
+      isRead: false,
+    },
+    {
+      id: 'notification-4',
+      userId: admin.id,
+      title: 'Certificate issued',
+      message: 'A new completion certificate was issued for UI Pattern Recognition Quiz.',
+      type: 'success',
+      priority: 'normal',
+      actionUrl: '/admin/certificates',
+      isRead: false,
+    },
+  ]
+
+  for (const notification of notifications) {
+    await prisma.notification.upsert({
+      where: { id: notification.id },
+      update: notification,
+      create: notification,
+    })
+  }
+
+  console.log('✓ Created notifications')
+
+  // Create certificate records for completed learners
+  await prisma.certificate.upsert({
+    where: { id: 'certificate-1' },
+    update: {
+      userId: learner1.id,
+      courseId: course1.id,
+      certificateNumber: 'CERT-ALICE-REACT-001',
+      verificationCode: 'VERIFY-ALICE-REACT-001',
+      isVerified: true,
+    },
+    create: {
+      id: 'certificate-1',
+      userId: learner1.id,
+      courseId: course1.id,
+      certificateNumber: 'CERT-ALICE-REACT-001',
+      verificationCode: 'VERIFY-ALICE-REACT-001',
+      issuedAt: new Date(now.getTime() - 48 * 60 * 60 * 1000),
+      isVerified: true,
+    }
+  })
+
+  await prisma.certificate.upsert({
+    where: { id: 'certificate-2' },
+    update: {
+      userId: learner2.id,
+      courseId: 'course-7',
+      certificateNumber: 'CERT-BOB-UIPATTERN-001',
+      verificationCode: 'VERIFY-BOB-UIPATTERN-001',
+      isVerified: true,
+    },
+    create: {
+      id: 'certificate-2',
+      userId: learner2.id,
+      courseId: 'course-7',
+      certificateNumber: 'CERT-BOB-UIPATTERN-001',
+      verificationCode: 'VERIFY-BOB-UIPATTERN-001',
+      issuedAt: new Date(now.getTime() - 6 * 60 * 60 * 1000),
+      isVerified: true,
+    }
+  })
+
+  console.log('✓ Created certificates')
+
+  // Create audit logs for admin reporting and certificate timeline
+  const auditEntries = [
+    {
+      id: 'audit-certificate-1',
+      userId: learner1.id,
+      action: 'certificate',
+      targetType: 'course',
+      targetId: course1.id,
+      details: 'Course completed',
+      timestamp: new Date(now.getTime() - 48 * 60 * 60 * 1000),
+    },
+    {
+      id: 'audit-certificate-2',
+      userId: learner2.id,
+      action: 'certificate',
+      targetType: 'course',
+      targetId: 'course-7',
+      details: 'Course completed',
+      timestamp: new Date(now.getTime() - 6 * 60 * 60 * 1000),
+    },
+    {
+      id: 'audit-admin-tests-1',
+      userId: admin.id,
+      action: 'admin_test_create',
+      targetType: 'test',
+      targetId: test2.id,
+      details: 'Created manual-review practical assessment',
+      timestamp: new Date(now.getTime() - 10 * 60 * 60 * 1000),
+    },
+    {
+      id: 'audit-supervisor-grade-1',
+      userId: supervisor.id,
+      action: 'supervisor_grade',
+      targetType: 'test_result',
+      targetId: test3.id,
+      details: 'Graded UI Pattern Recognition retake',
+      timestamp: new Date(now.getTime() - 5 * 60 * 60 * 1000),
+    },
+  ]
+
+  for (const entry of auditEntries) {
+    await prisma.auditLog.upsert({
+      where: { id: entry.id },
+      update: entry,
+      create: entry,
+    })
+  }
+
+  console.log('✓ Created audit logs')
+
   console.log('✓ Database seeded successfully!')
 }
 
