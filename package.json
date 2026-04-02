@@ -12,7 +12,8 @@
     "postinstall": "prisma generate",
     "seed": "ts-node --compiler-options \"{\\\"module\\\":\\\"commonjs\\\"}\" prisma/seed.ts",
     "reset:test-users": "ts-node --compiler-options \"{\\\"module\\\":\\\"commonjs\\\"}\" prisma/seed.ts",
-    "demo:full": "powershell -ExecutionPolicy Bypass -File ./scripts/populate-full-demo.ps1"
+    "demo:full": "powershell -ExecutionPolicy Bypass -File ./scripts/populate-full-demo.ps1",
+    "db:backfill:phase2": "ts-node --compiler-options \"{\\\"module\\\":\\\"commonjs\\\"}\" scripts/apply-missing-phase2-tables.ts"
   },
   "prisma": {
     "seed": "npx ts-node --compiler-options \"{\\\"module\\\":\\\"commonjs\\\"}\" prisma/seed.ts"

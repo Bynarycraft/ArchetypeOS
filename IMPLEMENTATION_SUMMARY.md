@@ -1,8 +1,16 @@
 # ArchetypeOS MVP - Implementation Summary
 
-## Project Completion Status: ✅ 100%
+## Project Completion Status: ✅ Core platform complete; phase expansion in progress
 
-This document summarizes the complete rebuild of the ArchetypeOS platform based on the peachBlossom specifications.
+This document summarizes the rebuilt ArchetypeOS platform and the phase roadmap that extends it beyond the current MVP surface.
+
+## Phase Map
+
+- **Phase 1 - Core Platform**: live.
+- **Phase 2 - Operational Intelligence**: partially live, partially planned.
+- **Phase 3 - Integrations and Automation**: future.
+
+The detailed feature mapping lives in [PROJECT_PHASES.md](PROJECT_PHASES.md).
 
 ## What Was Built
 

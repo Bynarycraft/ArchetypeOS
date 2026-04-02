@@ -923,23 +923,27 @@ Use decision logs, action trackers, and weekly review cadences to prevent ambigu
     },
   ]
 
-  for (const lesson of lessons) {
-    await prisma.lesson.upsert({
-      where: { id: lesson.id },
-      update: {
-        courseId: lesson.courseId,
-        order: lesson.order,
-        title: lesson.title,
-        description: lesson.description,
-        contentType: lesson.contentType,
-        contentUrl: lesson.contentUrl,
-        duration: lesson.duration,
-      },
-      create: lesson,
-    })
-  }
+  try {
+    for (const lesson of lessons) {
+      await prisma.lesson.upsert({
+        where: { id: lesson.id },
+        update: {
+          courseId: lesson.courseId,
+          order: lesson.order,
+          title: lesson.title,
+          description: lesson.description,
+          contentType: lesson.contentType,
+          contentUrl: lesson.contentUrl,
+          duration: lesson.duration,
+        },
+        create: lesson,
+      })
+    }
 
-  console.log('✓ Created lessons')
+    console.log('✓ Created lessons')
+  } catch (error) {
+    console.warn('⚠ Skipped lesson seed (table likely missing):', error instanceof Error ? error.message : error)
+  }
 
   // Create additional tests to cover graded + pending review scenarios
   const test2 = await prisma.test.upsert({
@@ -1168,91 +1172,99 @@ Use decision logs, action trackers, and weekly review cadences to prevent ambigu
   console.log('✓ Created reflections')
 
   // Add supervisor comments on reflections
-  const reflectionOne = await prisma.reflection.findUnique({ where: { learningSessionId: 'session-1' } })
-  const reflectionTwo = await prisma.reflection.findUnique({ where: { learningSessionId: 'session-2' } })
+  try {
+    const reflectionOne = await prisma.reflection.findUnique({ where: { learningSessionId: 'session-1' } })
+    const reflectionTwo = await prisma.reflection.findUnique({ where: { learningSessionId: 'session-2' } })
 
-  if (reflectionOne) {
-    await prisma.reflectionComment.upsert({
-      where: { id: 'reflection-comment-1' },
-      update: {
-        reflectionId: reflectionOne.id,
-        senderId: supervisor.id,
-        text: 'Strong progress. Next step is to document tradeoffs in your hook design.',
-      },
-      create: {
-        id: 'reflection-comment-1',
-        reflectionId: reflectionOne.id,
-        senderId: supervisor.id,
-        text: 'Strong progress. Next step is to document tradeoffs in your hook design.',
-      }
-    })
+    if (reflectionOne) {
+      await prisma.reflectionComment.upsert({
+        where: { id: 'reflection-comment-1' },
+        update: {
+          reflectionId: reflectionOne.id,
+          senderId: supervisor.id,
+          text: 'Strong progress. Next step is to document tradeoffs in your hook design.',
+        },
+        create: {
+          id: 'reflection-comment-1',
+          reflectionId: reflectionOne.id,
+          senderId: supervisor.id,
+          text: 'Strong progress. Next step is to document tradeoffs in your hook design.',
+        }
+      })
+    }
+
+    if (reflectionTwo) {
+      await prisma.reflectionComment.upsert({
+        where: { id: 'reflection-comment-2' },
+        update: {
+          reflectionId: reflectionTwo.id,
+          senderId: supervisor.id,
+          text: 'Excellent resilience on retake. Keep reinforcing spacing rules with examples.',
+        },
+        create: {
+          id: 'reflection-comment-2',
+          reflectionId: reflectionTwo.id,
+          senderId: supervisor.id,
+          text: 'Excellent resilience on retake. Keep reinforcing spacing rules with examples.',
+        }
+      })
+    }
+
+    console.log('✓ Created reflection comments')
+  } catch (error) {
+    console.warn('⚠ Skipped reflection comment seed (table likely missing):', error instanceof Error ? error.message : error)
   }
-
-  if (reflectionTwo) {
-    await prisma.reflectionComment.upsert({
-      where: { id: 'reflection-comment-2' },
-      update: {
-        reflectionId: reflectionTwo.id,
-        senderId: supervisor.id,
-        text: 'Excellent resilience on retake. Keep reinforcing spacing rules with examples.',
-      },
-      create: {
-        id: 'reflection-comment-2',
-        reflectionId: reflectionTwo.id,
-        senderId: supervisor.id,
-        text: 'Excellent resilience on retake. Keep reinforcing spacing rules with examples.',
-      }
-    })
-  }
-
-  console.log('✓ Created reflection comments')
 
   // Create directional feedback entries (supervisor <-> learners)
-  await prisma.feedback.upsert({
-    where: { id: 'feedback-1' },
-    update: {
-      senderId: supervisor.id,
-      receiverId: learner1.id,
-      courseId: course2.id,
-      type: 'coaching',
-      text: 'Good architectural reasoning. Improve clarity in performance tradeoff explanations.',
-      rating: 4,
-    },
-    create: {
-      id: 'feedback-1',
-      senderId: supervisor.id,
-      receiverId: learner1.id,
-      courseId: course2.id,
-      type: 'coaching',
-      text: 'Good architectural reasoning. Improve clarity in performance tradeoff explanations.',
-      rating: 4,
-      isPrivate: false,
-    }
-  })
+  try {
+    await prisma.feedback.upsert({
+      where: { id: 'feedback-1' },
+      update: {
+        senderId: supervisor.id,
+        receiverId: learner1.id,
+        courseId: course2.id,
+        type: 'coaching',
+        text: 'Good architectural reasoning. Improve clarity in performance tradeoff explanations.',
+        rating: 4,
+      },
+      create: {
+        id: 'feedback-1',
+        senderId: supervisor.id,
+        receiverId: learner1.id,
+        courseId: course2.id,
+        type: 'coaching',
+        text: 'Good architectural reasoning. Improve clarity in performance tradeoff explanations.',
+        rating: 4,
+        isPrivate: false,
+      }
+    })
 
-  await prisma.feedback.upsert({
-    where: { id: 'feedback-2' },
-    update: {
-      senderId: learner2.id,
-      receiverId: supervisor.id,
-      courseId: 'course-7',
-      type: 'comment',
-      text: 'The feedback on hierarchy made the retake much easier. Thank you.',
-      rating: 5,
-    },
-    create: {
-      id: 'feedback-2',
-      senderId: learner2.id,
-      receiverId: supervisor.id,
-      courseId: 'course-7',
-      type: 'comment',
-      text: 'The feedback on hierarchy made the retake much easier. Thank you.',
-      rating: 5,
-      isPrivate: false,
-    }
-  })
+    await prisma.feedback.upsert({
+      where: { id: 'feedback-2' },
+      update: {
+        senderId: learner2.id,
+        receiverId: supervisor.id,
+        courseId: 'course-7',
+        type: 'comment',
+        text: 'The feedback on hierarchy made the retake much easier. Thank you.',
+        rating: 5,
+      },
+      create: {
+        id: 'feedback-2',
+        senderId: learner2.id,
+        receiverId: supervisor.id,
+        courseId: 'course-7',
+        type: 'comment',
+        text: 'The feedback on hierarchy made the retake much easier. Thank you.',
+        rating: 5,
+        isPrivate: false,
+      }
+    })
 
-  console.log('✓ Created feedback threads')
+    console.log('✓ Created feedback threads')
+  } catch (error) {
+    console.warn('⚠ Skipped feedback seed (table likely missing):', error instanceof Error ? error.message : error)
+  }
 
   // Create notifications to make inboxes realistic
   const notifications = [
@@ -1298,81 +1310,89 @@ Use decision logs, action trackers, and weekly review cadences to prevent ambigu
     },
   ]
 
-  for (const notification of notifications) {
+  try {
+    for (const notification of notifications) {
+      await prisma.notification.upsert({
+        where: { id: notification.id },
+        update: notification,
+        create: notification,
+      })
+    }
+
     await prisma.notification.upsert({
-      where: { id: notification.id },
-      update: notification,
-      create: notification,
+      where: { id: 'notification-5' },
+      update: {
+        userId: learner3.id,
+        title: 'Manual review pending',
+        message: 'Your Advanced React Patterns Practical submission is waiting for supervisor grading.',
+        type: 'warning',
+        priority: 'high',
+        actionUrl: '/tests',
+        isRead: false,
+      },
+      create: {
+        id: 'notification-5',
+        userId: learner3.id,
+        title: 'Manual review pending',
+        message: 'Your Advanced React Patterns Practical submission is waiting for supervisor grading.',
+        type: 'warning',
+        priority: 'high',
+        actionUrl: '/tests',
+        isRead: false,
+      }
     })
+
+    console.log('✓ Created notifications')
+  } catch (error) {
+    console.warn('⚠ Skipped notification seed (table likely missing):', error instanceof Error ? error.message : error)
   }
 
-  await prisma.notification.upsert({
-    where: { id: 'notification-5' },
-    update: {
-      userId: learner3.id,
-      title: 'Manual review pending',
-      message: 'Your Advanced React Patterns Practical submission is waiting for supervisor grading.',
-      type: 'warning',
-      priority: 'high',
-      actionUrl: '/tests',
-      isRead: false,
-    },
-    create: {
-      id: 'notification-5',
-      userId: learner3.id,
-      title: 'Manual review pending',
-      message: 'Your Advanced React Patterns Practical submission is waiting for supervisor grading.',
-      type: 'warning',
-      priority: 'high',
-      actionUrl: '/tests',
-      isRead: false,
-    }
-  })
-
-  console.log('✓ Created notifications')
-
   // Create certificate records for completed learners
-  await prisma.certificate.upsert({
-    where: { id: 'certificate-1' },
-    update: {
-      userId: learner1.id,
-      courseId: course1.id,
-      certificateNumber: 'CERT-ALICE-REACT-001',
-      verificationCode: 'VERIFY-ALICE-REACT-001',
-      isVerified: true,
-    },
-    create: {
-      id: 'certificate-1',
-      userId: learner1.id,
-      courseId: course1.id,
-      certificateNumber: 'CERT-ALICE-REACT-001',
-      verificationCode: 'VERIFY-ALICE-REACT-001',
-      issuedAt: new Date(now.getTime() - 48 * 60 * 60 * 1000),
-      isVerified: true,
-    }
-  })
+  try {
+    await prisma.certificate.upsert({
+      where: { id: 'certificate-1' },
+      update: {
+        userId: learner1.id,
+        courseId: course1.id,
+        certificateNumber: 'CERT-ALICE-REACT-001',
+        verificationCode: 'VERIFY-ALICE-REACT-001',
+        isVerified: true,
+      },
+      create: {
+        id: 'certificate-1',
+        userId: learner1.id,
+        courseId: course1.id,
+        certificateNumber: 'CERT-ALICE-REACT-001',
+        verificationCode: 'VERIFY-ALICE-REACT-001',
+        issuedAt: new Date(now.getTime() - 48 * 60 * 60 * 1000),
+        isVerified: true,
+      }
+    })
 
-  await prisma.certificate.upsert({
-    where: { id: 'certificate-2' },
-    update: {
-      userId: learner2.id,
-      courseId: 'course-7',
-      certificateNumber: 'CERT-BOB-UIPATTERN-001',
-      verificationCode: 'VERIFY-BOB-UIPATTERN-001',
-      isVerified: true,
-    },
-    create: {
-      id: 'certificate-2',
-      userId: learner2.id,
-      courseId: 'course-7',
-      certificateNumber: 'CERT-BOB-UIPATTERN-001',
-      verificationCode: 'VERIFY-BOB-UIPATTERN-001',
-      issuedAt: new Date(now.getTime() - 6 * 60 * 60 * 1000),
-      isVerified: true,
-    }
-  })
+    await prisma.certificate.upsert({
+      where: { id: 'certificate-2' },
+      update: {
+        userId: learner2.id,
+        courseId: 'course-7',
+        certificateNumber: 'CERT-BOB-UIPATTERN-001',
+        verificationCode: 'VERIFY-BOB-UIPATTERN-001',
+        isVerified: true,
+      },
+      create: {
+        id: 'certificate-2',
+        userId: learner2.id,
+        courseId: 'course-7',
+        certificateNumber: 'CERT-BOB-UIPATTERN-001',
+        verificationCode: 'VERIFY-BOB-UIPATTERN-001',
+        issuedAt: new Date(now.getTime() - 6 * 60 * 60 * 1000),
+        isVerified: true,
+      }
+    })
 
-  console.log('✓ Created certificates')
+    console.log('✓ Created certificates')
+  } catch (error) {
+    console.warn('⚠ Skipped certificate seed (table likely missing):', error instanceof Error ? error.message : error)
+  }
 
   // Create audit logs for admin reporting and certificate timeline
   const auditEntries = [
@@ -1414,15 +1434,19 @@ Use decision logs, action trackers, and weekly review cadences to prevent ambigu
     },
   ]
 
-  for (const entry of auditEntries) {
-    await prisma.auditLog.upsert({
-      where: { id: entry.id },
-      update: entry,
-      create: entry,
-    })
-  }
+  try {
+    for (const entry of auditEntries) {
+      await prisma.auditLog.upsert({
+        where: { id: entry.id },
+        update: entry,
+        create: entry,
+      })
+    }
 
-  console.log('✓ Created audit logs')
+    console.log('✓ Created audit logs')
+  } catch (error) {
+    console.warn('⚠ Skipped audit seed (table likely missing):', error instanceof Error ? error.message : error)
+  }
 
   console.log('✓ Database seeded successfully!')
 }

@@ -14,6 +14,8 @@ ArchetypeOS is an MVP web application that enables:
 - **Skill Intelligence**: Auto-generated skill graphs and proficiency tracking
 - **Role-Based Access Control**: Candidates, Learners, Supervisors, Admins
 
+The phased rollout plan is documented in [PROJECT_PHASES.md](PROJECT_PHASES.md). Phase 1 is live, Phase 2 is partially live, and Phase 3 covers external integrations and automation.
+
 ## Tech Stack
 
 - **Frontend**: Next.js 16+ (App Router) + TypeScript + Tailwind CSS
