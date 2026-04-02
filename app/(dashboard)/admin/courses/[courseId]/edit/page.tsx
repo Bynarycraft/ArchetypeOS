@@ -31,7 +31,6 @@ type CourseFormState = {
     difficulty: string;
     contentType: string;
     contentUrl: string;
-    content: string;
     duration: string;
 };
 
@@ -50,7 +49,6 @@ export default function EditCoursePage() {
         difficulty: "beginner",
         contentType: "video",
         contentUrl: "",
-        content: "",
         duration: "",
     });
     const [videoValidationStatus, setVideoValidationStatus] = useState<"idle" | "checking" | "valid" | "invalid">("idle");
@@ -95,7 +93,6 @@ export default function EditCoursePage() {
                     difficulty: course.difficulty ?? "beginner",
                     contentType: course.contentType ?? "video",
                     contentUrl: course.contentUrl ?? "",
-                    content: course.content ?? "",
                     duration: typeof course.duration === "number" ? String(course.duration) : "",
                 });
             } catch (error) {
@@ -198,7 +195,6 @@ export default function EditCoursePage() {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     ...formData,
-                    content: formData.contentType === "text" ? formData.content : undefined,
                     duration: formData.duration ? parseInt(formData.duration, 10) : null,
                 }),
             });
@@ -377,27 +373,6 @@ export default function EditCoursePage() {
                                 </div>
                             ) : null}
                         </div>
-
-                        {/* Inline Text Content */}
-                        {formData.contentType === "text" ? (
-                            <div className="space-y-2">
-                                <Label htmlFor="content" className="text-sm font-bold">
-                                    Course Text Content
-                                </Label>
-                                <textarea
-                                    id="content"
-                                    name="content"
-                                    placeholder="Write the full course content here. Use # Heading, ## Subheading, and plain paragraphs for structure..."
-                                    value={formData.content}
-                                    onChange={handleChange}
-                                    rows={14}
-                                    className="w-full rounded-xl border border-border/40 px-4 py-3 text-sm bg-background/50 focus:outline-none focus:border-primary transition-colors resize-y"
-                                />
-                                <p className="text-xs text-muted-foreground">
-                                    Use # for main heading, ## for section headings, and blank lines to separate paragraphs. This content is rendered inline for learners.
-                                </p>
-                            </div>
-                        ) : null}
 
                         <div className="space-y-2">
                             <Label htmlFor="duration" className="text-sm font-bold">

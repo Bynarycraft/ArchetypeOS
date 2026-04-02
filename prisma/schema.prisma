@@ -123,7 +123,6 @@ model Course {
   roadmapId   String?
   moduleId    String?
   contentType String
-  content     String?            // Rich text or structured content
   contentUrl  String?
   duration    Int?
   version     String             @default("1.0")

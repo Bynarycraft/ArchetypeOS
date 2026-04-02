@@ -30,7 +30,6 @@ export default function NewCoursePage() {
         difficulty: "beginner",
         contentType: "video",
         contentUrl: "",
-        content: "",
         duration: "",
     });
     const [videoValidationStatus, setVideoValidationStatus] = useState<"idle" | "checking" | "valid" | "invalid">("idle");
@@ -152,7 +151,6 @@ export default function NewCoursePage() {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     ...formData,
-                    content: formData.contentType === "text" ? formData.content : undefined,
                     duration: formData.duration ? parseInt(formData.duration) : null,
                 }),
             });
@@ -342,25 +340,6 @@ export default function NewCoursePage() {
                         </div>
 
                         {/* Inline Text Content */}
-                        {formData.contentType === "text" ? (
-                            <div className="space-y-2">
-                                <Label htmlFor="content" className="text-sm font-bold">
-                                    Course Text Content
-                                </Label>
-                                <textarea
-                                    id="content"
-                                    name="content"
-                                    placeholder="Write the full course content here. Use # Heading, ## Subheading, and plain paragraphs for structure..."
-                                    value={formData.content}
-                                    onChange={handleChange}
-                                    rows={14}
-                                    className="w-full rounded-xl border border-border/40 px-4 py-3 text-sm bg-background/50 focus:outline-none focus:border-primary transition-colors resize-y"
-                                />
-                                <p className="text-xs text-muted-foreground">
-                                    Use # for main heading, ## for section headings, and blank lines to separate paragraphs. This content is rendered inline for learners.
-                                </p>
-                            </div>
-                        ) : null}
 
                         {/* Duration */}
                         <div className="space-y-2">

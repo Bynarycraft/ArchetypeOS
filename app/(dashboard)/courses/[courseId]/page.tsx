@@ -18,71 +18,22 @@ interface Course {
   difficulty: string
   contentUrl: string | null
   contentType: string | null
-  content: string | null
   duration: number | null
   roadmap?: { archetype: string }
   tests?: { id: string; title: string; type: string }[]
   _count?: { enrollments: number }
 }
 
-function getSourceMeta(inputUrl: string) {
+function getSourceMeta(resourceUrl: string) {
   try {
-    const parsed = new URL(inputUrl)
+    const parsed = new URL(resourceUrl)
     return {
-      hostname: parsed.hostname.replace(/^www\./, ''),
-      pathname: parsed.pathname === '/' ? '' : parsed.pathname,
-      origin: parsed.origin,
+      hostname: parsed.hostname,
+      pathname: parsed.pathname,
     }
   } catch {
-    return {
-      hostname: inputUrl,
-      pathname: '',
-      origin: inputUrl,
-    }
+    return null
   }
-}
-
-function TextContentRenderer({ content }: { content: string }) {
-  const blocks = content.split(/\n\n+/)
-  return (
-    <div className="space-y-4 text-base leading-7">
-      {blocks.map((block, i) => {
-        const firstLine = block.split('\n')[0]
-        if (firstLine.startsWith('## ')) {
-          return (
-            <div key={i}>
-              <h2 className="text-xl font-black text-foreground mt-4 mb-1">{firstLine.slice(3)}</h2>
-              {block.split('\n').slice(1).join(' ').trim() ? (
-                <p className="text-muted-foreground">{block.split('\n').slice(1).join(' ').trim()}</p>
-              ) : null}
-            </div>
-          )
-        }
-        if (firstLine.startsWith('# ')) {
-          return (
-            <div key={i}>
-              <h1 className="text-2xl font-black text-foreground mt-2 mb-1">{firstLine.slice(2)}</h1>
-              {block.split('\n').slice(1).join(' ').trim() ? (
-                <p className="text-muted-foreground">{block.split('\n').slice(1).join(' ').trim()}</p>
-              ) : null}
-            </div>
-          )
-        }
-        const lines = block.split('\n')
-        const isList = lines.every(l => l.startsWith('- ') || l.startsWith('* ') || l.trim() === '')
-        if (isList) {
-          return (
-            <ul key={i} className="list-disc list-inside space-y-1 pl-2">
-              {lines.filter(l => l.startsWith('- ') || l.startsWith('* ')).map((l, j) => (
-                <li key={j} className="text-muted-foreground">{l.slice(2)}</li>
-              ))}
-            </ul>
-          )
-        }
-        return <p key={i} className="text-muted-foreground">{block.replace(/\n/g, ' ')}</p>
-      })}
-    </div>
-  )
 }
 
 interface Enrollment {
@@ -455,19 +406,12 @@ export default function CoursePage() {
           </CardContent>
         </Card>
 
-        <Card className="border-none glass rounded-3xl overflow-hidden">
+          <Card className="border-none glass rounded-3xl overflow-hidden">
           <CardHeader className="bg-muted/20 border-b border-border/10 p-8 pb-4">
             <h2 className="text-2xl font-black">Course Content</h2>
           </CardHeader>
           <CardContent className="p-8">
-            {course.content ? (
-              <div className="space-y-4">
-                <div className="rounded-2xl border border-border/40 bg-background/30 px-8 py-7">
-                  <TextContentRenderer content={course.content} />
-                </div>
-                {renderSupportingAsset()}
-              </div>
-            ) : course.contentUrl ? (
+            {course.contentUrl ? (
               <div className="space-y-4">
                 {renderSupportingAsset() ?? (
                   <div className="p-8 rounded-2xl border-2 border-dashed border-border/40 flex flex-col items-center justify-center text-center">
