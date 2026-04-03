@@ -12,7 +12,7 @@ export async function GET() {
 
   try {
     // Get notifications from the Notification model
-    const notifications = await prisma.notification.findMany({
+    let notifications = await prisma.notification.findMany({
       where: {
         userId: session.user.id,
       },
@@ -30,6 +30,33 @@ export async function GET() {
         readAt: true,
       },
     });
+
+    // Keep candidate onboarding UX from starting with a permanently empty inbox.
+    if (notifications.length === 0 && session.user.role?.toLowerCase() === "candidate") {
+      const welcome = await prisma.notification.create({
+        data: {
+          userId: session.user.id,
+          title: "Onboarding track unlocked",
+          message: "Welcome aboard. Complete your onboarding course and assessment to become a learner.",
+          type: "info",
+          priority: "normal",
+          actionUrl: "/courses",
+        },
+        select: {
+          id: true,
+          title: true,
+          message: true,
+          type: true,
+          priority: true,
+          actionUrl: true,
+          isRead: true,
+          createdAt: true,
+          readAt: true,
+        },
+      });
+
+      notifications = [welcome];
+    }
 
     return NextResponse.json(notifications);
   } catch (error) {
