@@ -1021,12 +1021,15 @@ Use decision logs, action trackers, and weekly review cadences to prevent ambigu
     create: {
       userId: learner1.id,
       testId: test2.id,
-      score: 0,
-      status: 'submitted',
+      score: 58,
+      status: 'graded',
       answers: JSON.stringify({
         0: 'Use composition first, context for shared global concerns.',
         1: 'Memoization and splitting expensive renders improve responsiveness.',
       }),
+      feedback: 'Not yet passing. Good ideas, but the architecture tradeoffs need clearer depth and examples.',
+      gradedBy: supervisor.id,
+      gradedAt: new Date(now.getTime() - 9 * 60 * 60 * 1000),
       startedAt: new Date(yesterday.getTime() + 90 * 60 * 1000),
       submittedAt: new Date(yesterday.getTime() + 130 * 60 * 1000),
       attemptNumber: 1,
@@ -1091,15 +1094,42 @@ Use decision logs, action trackers, and weekly review cadences to prevent ambigu
     create: {
       userId: learner3.id,
       testId: test2.id,
-      score: 0,
-      status: 'submitted',
+      score: 46,
+      status: 'graded',
       answers: JSON.stringify({
         0: 'Composition reduces prop drilling in feature shells.',
         1: 'Profiling helps identify wasted renders and expensive effects.',
       }),
+      feedback: 'Failing attempt. Please provide concrete implementation tradeoffs and measurable performance rationale.',
+      gradedBy: supervisor.id,
+      gradedAt: new Date(now.getTime() - 100 * 60 * 1000),
       startedAt: new Date(now.getTime() - 3 * 60 * 60 * 1000),
       submittedAt: new Date(now.getTime() - 2 * 60 * 60 * 1000),
       attemptNumber: 1,
+    }
+  })
+
+  await prisma.testResult.upsert({
+    where: {
+      userId_testId_attemptNumber: {
+        userId: learner3.id,
+        testId: test2.id,
+        attemptNumber: 2,
+      }
+    },
+    update: {},
+    create: {
+      userId: learner3.id,
+      testId: test2.id,
+      score: 0,
+      status: 'submitted',
+      answers: JSON.stringify({
+        0: 'Retake in progress with clearer context vs composition examples.',
+        1: 'Added concrete profiling metrics and render timing notes.',
+      }),
+      startedAt: new Date(now.getTime() - 70 * 60 * 1000),
+      submittedAt: new Date(now.getTime() - 20 * 60 * 1000),
+      attemptNumber: 2,
     }
   })
 
@@ -1271,9 +1301,9 @@ Use decision logs, action trackers, and weekly review cadences to prevent ambigu
     {
       id: 'notification-1',
       userId: learner1.id,
-      title: 'Assessment submitted',
-      message: 'Your Advanced React Patterns Practical assessment is awaiting review.',
-      type: 'info',
+      title: 'Assessment graded - not passed',
+      message: 'Your Advanced React Patterns Practical score is 58%. Review feedback and submit a stronger retake.',
+      type: 'error',
       priority: 'normal',
       actionUrl: '/tests',
       isRead: false,
@@ -1292,7 +1322,7 @@ Use decision logs, action trackers, and weekly review cadences to prevent ambigu
       id: 'notification-3',
       userId: supervisor.id,
       title: 'Pending grading queue',
-      message: 'There is 1 submitted assessment pending review.',
+      message: 'There is 1 submitted retake pending review after a failed attempt.',
       type: 'warning',
       priority: 'high',
       actionUrl: '/supervisor',
@@ -1323,8 +1353,8 @@ Use decision logs, action trackers, and weekly review cadences to prevent ambigu
       where: { id: 'notification-5' },
       update: {
         userId: learner3.id,
-        title: 'Manual review pending',
-        message: 'Your Advanced React Patterns Practical submission is waiting for supervisor grading.',
+        title: 'Retake submitted',
+        message: 'Your second attempt was submitted after a failed grade and is awaiting supervisor review.',
         type: 'warning',
         priority: 'high',
         actionUrl: '/tests',
@@ -1333,8 +1363,8 @@ Use decision logs, action trackers, and weekly review cadences to prevent ambigu
       create: {
         id: 'notification-5',
         userId: learner3.id,
-        title: 'Manual review pending',
-        message: 'Your Advanced React Patterns Practical submission is waiting for supervisor grading.',
+        title: 'Retake submitted',
+        message: 'Your second attempt was submitted after a failed grade and is awaiting supervisor review.',
         type: 'warning',
         priority: 'high',
         actionUrl: '/tests',
