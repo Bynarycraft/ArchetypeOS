@@ -10,58 +10,84 @@ export async function GET(_req: Request) {
     }
 
     try {
-        const userData = await prisma.user.findUnique({
-            where: { id: session.user.id },
-            include: {
-                courseEnrollments: {
-                    where: { status: "completed" },
-                    include: { course: { include: { roadmap: true } } }
-                },
-                testResults: {
-                    where: { status: { in: ["graded", "GRADED"] } },
-                    include: { test: { include: { course: { include: { roadmap: true } } } } }
-                }
-            }
-        });
+        const role = session.user.role?.toLowerCase() || "candidate";
+        const isManagerView = role === "supervisor" || role === "admin";
 
-        if (!userData) return NextResponse.json({ error: "User not found" }, { status: 404 });
+        const users = isManagerView
+            ? await prisma.user.findMany({
+                  where:
+                      role === "supervisor"
+                          ? { supervisorId: session.user.id, role: { in: ["learner", "candidate"] } }
+                          : { role: { in: ["learner", "candidate"] } },
+                  include: {
+                      courseEnrollments: {
+                          where: { status: "completed" },
+                          include: { course: { include: { roadmap: true } } },
+                      },
+                      testResults: {
+                          where: { status: { in: ["graded", "GRADED"] } },
+                          include: { test: { include: { course: { include: { roadmap: true } } } } },
+                      },
+                  },
+              })
+            : await prisma.user.findMany({
+                  where: { id: session.user.id },
+                  include: {
+                      courseEnrollments: {
+                          where: { status: "completed" },
+                          include: { course: { include: { roadmap: true } } },
+                      },
+                      testResults: {
+                          where: { status: { in: ["graded", "GRADED"] } },
+                          include: { test: { include: { course: { include: { roadmap: true } } } } },
+                      },
+                  },
+              });
 
-        const skillMap: Record<string, { total: number, count: number }> = {};
+        if (users.length === 0) {
+            return NextResponse.json([]);
+        }
 
-        userData.testResults.forEach((result: { score: number; test: { course: { roadmap: { name: string } | null } } }) => {
-            const category = result.test.course.roadmap?.name || "General";
-            if (!skillMap[category]) skillMap[category] = { total: 0, count: 0 };
-            skillMap[category].total += (result.score || 0) / 20;
-            skillMap[category].count++;
-        });
+        const skillMap: Record<string, { total: number; count: number }> = {};
 
-        userData.courseEnrollments.forEach((enroll: { course: { roadmap: { name: string } | null } }) => {
-            const category = enroll.course.roadmap?.name || "General";
-            if (!skillMap[category]) skillMap[category] = { total: 0, count: 0 };
-            skillMap[category].total += 3.5;
-            skillMap[category].count++;
-        });
+        for (const userData of users) {
+            userData.testResults.forEach((result) => {
+                const category = result.test.course.roadmap?.name || "General";
+                if (!skillMap[category]) skillMap[category] = { total: 0, count: 0 };
+                skillMap[category].total += (result.score || 0) / 20;
+                skillMap[category].count++;
+            });
+
+            userData.courseEnrollments.forEach((enroll) => {
+                const category = enroll.course.roadmap?.name || "General";
+                if (!skillMap[category]) skillMap[category] = { total: 0, count: 0 };
+                skillMap[category].total += 3.5;
+                skillMap[category].count++;
+            });
+        }
 
         const calculatedSkills = Object.entries(skillMap).map(([name, data]) => ({
             name,
-            level: Math.min(Math.round((data.total / data.count) * 10) / 10, 5)
+            level: Math.min(Math.round((data.total / data.count) * 10) / 10, 5),
         }));
 
-        for (const skill of calculatedSkills) {
-            await prisma.skill.upsert({
-                where: {
-                    userId_name: {
+        if (!isManagerView) {
+            for (const skill of calculatedSkills) {
+                await prisma.skill.upsert({
+                    where: {
+                        userId_name: {
+                            userId: session.user.id,
+                            name: skill.name,
+                        },
+                    },
+                    update: { level: skill.level },
+                    create: {
                         userId: session.user.id,
-                        name: skill.name
-                    }
-                },
-                update: { level: skill.level },
-                create: {
-                    userId: session.user.id,
-                    name: skill.name,
-                    level: skill.level
-                }
-            });
+                        name: skill.name,
+                        level: skill.level,
+                    },
+                });
+            }
         }
 
         return NextResponse.json(calculatedSkills);

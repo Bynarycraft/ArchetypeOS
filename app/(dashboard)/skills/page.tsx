@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useSession } from "next-auth/react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Brain, Sparkles } from "lucide-react";
 import { PageHeader } from "@/components/layout/page-header";
@@ -13,8 +14,14 @@ type Skill = {
 };
 
 export default function SkillsPage() {
+  const { data: session } = useSession();
   const [skills, setSkills] = useState<Skill[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const isManagerView = useMemo(() => {
+    const role = session?.user?.role?.toLowerCase();
+    return role === "supervisor" || role === "admin";
+  }, [session?.user?.role]);
 
   useEffect(() => {
     const load = async () => {
@@ -44,7 +51,11 @@ export default function SkillsPage() {
       <PageHeader 
         icon={Brain}
         title="Skill Map"
-        description="Intelligence layer built from learning + assessments."
+        description={
+          isManagerView
+            ? "Team intelligence layer built from learner progress + assessments."
+            : "Personal intelligence layer built from learning + assessments."
+        }
       />
 
       {loading ? (
@@ -60,7 +71,11 @@ export default function SkillsPage() {
             </CardHeader>
             <CardContent className="flex items-center gap-4">
               <div className="text-4xl font-black">{readinessScore}%</div>
-              <p className="text-sm text-muted-foreground">Overall readiness based on completed learning and test scores.</p>
+              <p className="text-sm text-muted-foreground">
+                {isManagerView
+                  ? "Overall team readiness based on completed learning and graded assessments."
+                  : "Overall readiness based on completed learning and graded assessments."}
+              </p>
             </CardContent>
           </Card>
 
@@ -72,8 +87,12 @@ export default function SkillsPage() {
               {skills.length === 0 ? (
                 <EmptyState 
                   icon={Brain}
-                  title="No skills calculated yet"
-                  description="Complete learning modules and assessments to develop your skill profile."
+                  title={isManagerView ? "No team skills calculated yet" : "No skills calculated yet"}
+                  description={
+                    isManagerView
+                      ? "Have learners complete courses and assessments to populate the team skill map."
+                      : "Complete learning modules and assessments to develop your skill profile."
+                  }
                 />
               ) : (
                 <div className="grid gap-4 md:grid-cols-2">
