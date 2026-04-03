@@ -1338,6 +1338,16 @@ Use decision logs, action trackers, and weekly review cadences to prevent ambigu
       actionUrl: '/admin/certificates',
       isRead: false,
     },
+    {
+      id: 'notification-6',
+      userId: candidate1.id,
+      title: 'Onboarding track unlocked',
+      message: 'Welcome aboard. Complete your onboarding course and assessment to become a learner.',
+      type: 'info',
+      priority: 'normal',
+      actionUrl: '/courses',
+      isRead: false,
+    },
   ]
 
   try {
