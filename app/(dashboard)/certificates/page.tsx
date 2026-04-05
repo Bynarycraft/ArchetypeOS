@@ -23,6 +23,7 @@ type CertificateItem = {
 export default function CertificatesPage() {
   const [items, setItems] = useState<CertificateItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   const formatIssuedAt = (value: string) => {
     const parsed = new Date(value);
@@ -33,11 +34,20 @@ export default function CertificatesPage() {
     const load = async () => {
       try {
         const res = await fetch("/api/certificates");
-        if (res.ok) {
-          setItems(await res.json());
+        if (!res.ok) {
+          setLoadError("Unable to load certificates right now.");
+          return;
+        }
+
+        const data = await res.json();
+        if (Array.isArray(data)) {
+          setItems(data);
+        } else {
+          setLoadError("Certificate data is temporarily unavailable.");
         }
       } catch (_error) {
         console.error("Failed to load certificates");
+        setLoadError("Unable to load certificates right now.");
       } finally {
         setLoading(false);
       }
@@ -59,6 +69,12 @@ export default function CertificatesPage() {
           <LoadingCard />
           <LoadingCard />
         </div>
+      ) : loadError ? (
+        <EmptyState
+          icon={Award}
+          title="Certificates are unavailable"
+          description={loadError}
+        />
       ) : items.length === 0 ? (
         <EmptyState 
           icon={Award}
