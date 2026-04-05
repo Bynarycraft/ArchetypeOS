@@ -46,6 +46,7 @@ interface TestResult {
   id: string
   score: number
   status: string
+  feedback: string | null
   submittedAt: string | null
   attemptNumber: number
   test: {
@@ -449,18 +450,32 @@ export default function CoursePage() {
               <h2 className="text-2xl font-black">Assessments</h2>
             </CardHeader>
             <CardContent className="p-8 space-y-3">
-              {course.tests.map((test) => (
-                <Link
-                  key={test.id}
-                  href={`/courses/${course.id}/test/${test.id}`}
-                  className="flex items-center justify-between rounded-2xl border border-border/50 p-4 hover:border-primary/40 hover:bg-primary/5"
-                >
-                  <span className="font-semibold">{test.title}</span>
-                  <span className="inline-flex items-center text-sm font-medium text-primary">
-                    Start <ExternalLink className="ml-2 h-4 w-4" />
-                  </span>
-                </Link>
-              ))}
+              {course.tests.map((test) => {
+                const latestResult = testResults.find((result) => result.test.id === test.id)
+                const latestStatus = latestResult?.status?.toLowerCase()
+
+                return (
+                  <Link
+                    key={test.id}
+                    href={`/courses/${course.id}/test/${test.id}`}
+                    className="flex items-center justify-between rounded-2xl border border-border/50 p-4 hover:border-primary/40 hover:bg-primary/5"
+                  >
+                    <div className="min-w-0">
+                      <p className="font-semibold">{test.title}</p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {!latestResult
+                          ? "Not attempted yet"
+                          : latestStatus === "graded"
+                            ? `Latest score: ${latestResult.score}%`
+                            : "Submitted - awaiting supervisor grading"}
+                      </p>
+                    </div>
+                    <span className="inline-flex items-center text-sm font-medium text-primary">
+                      {latestResult ? "Retake" : "Start"} <ExternalLink className="ml-2 h-4 w-4" />
+                    </span>
+                  </Link>
+                )
+              })}
             </CardContent>
           </Card>
         )}

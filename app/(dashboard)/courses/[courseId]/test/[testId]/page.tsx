@@ -132,7 +132,12 @@ export default function TestPage({ params }: { params: Promise<{ courseId: strin
 
             if (res.ok) {
                 const result = await res.json();
-                toast.success(`Module assessment submitted! Score: ${result.score}%`);
+                const resultStatus = String(result?.status || "").toLowerCase();
+                if (resultStatus === "graded") {
+                    toast.success(`Assessment submitted. Score: ${result.score}%`);
+                } else {
+                    toast.success("Assessment submitted. Awaiting grading from your supervisor.");
+                }
                 router.push(`/courses/${courseId}`);
             } else {
                 toast.error("Failed to submit assessment.");

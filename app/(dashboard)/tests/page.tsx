@@ -72,7 +72,12 @@ export default async function TestsPage() {
         <div className="grid gap-5 md:grid-cols-2">
           {tests.map((test) => {
             const lastResult = test.results[0];
-            const resultStatus = lastResult ? `Last score: ${lastResult.score}%` : "Not attempted yet";
+            const normalizedStatus = lastResult?.status?.toLowerCase();
+            const resultStatus = !lastResult
+              ? "Not attempted yet"
+              : normalizedStatus === "graded"
+                ? `Last score: ${lastResult.score}%`
+                : "Awaiting grading";
 
             return (
               <Card key={test.id} className="glass-card">
@@ -96,6 +101,9 @@ export default async function TestsPage() {
                     <ClipboardCheck className="h-4 w-4 text-primary" />
                     <span>{resultStatus}</span>
                   </div>
+                  {normalizedStatus === "graded" && lastResult?.feedback ? (
+                    <p className="text-xs text-muted-foreground">Feedback: {lastResult.feedback}</p>
+                  ) : null}
                   <Link href={`/courses/${test.course.id}/test/${test.id}`}>
                     <Button className="w-full">
                       {lastResult ? "Retake Test" : "Start Test"}
