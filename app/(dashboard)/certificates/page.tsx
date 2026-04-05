@@ -1,13 +1,13 @@
-"use client";
-
-import { useEffect, useState } from "react";
 import Link from "next/link";
+import { getServerSession } from "next-auth";
+import { redirect } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Award, Download, ShieldCheck } from "lucide-react";
 import { PageHeader } from "@/components/layout/page-header";
 import { EmptyState } from "@/components/layout/empty-state";
-import { LoadingCard } from "@/components/layout/loading-skeleton";
+import { authOptions } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 
 type CertificateItem = {
   id: string;
@@ -20,41 +20,70 @@ type CertificateItem = {
   details?: string | null;
 };
 
-export default function CertificatesPage() {
-  const [items, setItems] = useState<CertificateItem[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [loadError, setLoadError] = useState<string | null>(null);
+async function getCertificateItems(userId: string): Promise<CertificateItem[]> {
+  const certificates = await prisma.certificate.findMany({
+    where: { userId },
+    orderBy: { issuedAt: "desc" },
+    select: {
+      id: true,
+      certificateNumber: true,
+      issuedAt: true,
+      expiresAt: true,
+      verificationCode: true,
+      isVerified: true,
+      courseId: true,
+    },
+  });
+
+  const courseIds = Array.from(
+    new Set(certificates.map((certificate) => certificate.courseId).filter(Boolean))
+  );
+
+  const courses = courseIds.length
+    ? await prisma.course.findMany({
+        where: { id: { in: courseIds } },
+        select: { id: true, title: true },
+      })
+    : [];
+
+  const courseTitleById = new Map(courses.map((course) => [course.id, course.title]));
+
+  return certificates.map((certificate) => ({
+    id: certificate.id,
+    issuedAt: certificate.issuedAt.toISOString(),
+    targetId: certificate.courseId,
+    courseTitle: courseTitleById.get(certificate.courseId) || "General Completion",
+    certificateNumber: certificate.certificateNumber,
+    verificationUrl: `/verify/certificate/${certificate.verificationCode || certificate.id}`,
+    downloadUrl: `/api/certificates/${certificate.id}/pdf`,
+    details: certificate.expiresAt
+      ? `Expires ${new Date(certificate.expiresAt).toLocaleDateString()}`
+      : certificate.isVerified
+        ? "Verified"
+        : null,
+  }));
+}
+
+export default async function CertificatesPage() {
+  const session = await getServerSession(authOptions);
+  if (!session) {
+    redirect("/auth/signin");
+  }
+
+  let items: CertificateItem[] = [];
+  let loadError: string | null = null;
+
+  try {
+    items = await getCertificateItems(session.user.id);
+  } catch (error) {
+    console.error("Failed to load certificates page:", error);
+    loadError = "Unable to load certificates right now.";
+  }
 
   const formatIssuedAt = (value: string) => {
     const parsed = new Date(value);
     return Number.isNaN(parsed.getTime()) ? "Unknown" : parsed.toLocaleString();
   };
-
-  useEffect(() => {
-    const load = async () => {
-      try {
-        const res = await fetch("/api/certificates");
-        if (!res.ok) {
-          setLoadError("Unable to load certificates right now.");
-          return;
-        }
-
-        const data = await res.json();
-        if (Array.isArray(data)) {
-          setItems(data);
-        } else {
-          setLoadError("Certificate data is temporarily unavailable.");
-        }
-      } catch (_error) {
-        console.error("Failed to load certificates");
-        setLoadError("Unable to load certificates right now.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    load();
-  }, []);
 
   return (
     <div className="space-y-8">
@@ -64,12 +93,7 @@ export default function CertificatesPage() {
         description="Certificates earned from completed modules."
       />
 
-      {loading ? (
-        <div className="space-y-4">
-          <LoadingCard />
-          <LoadingCard />
-        </div>
-      ) : loadError ? (
+      {loadError ? (
         <EmptyState
           icon={Award}
           title="Certificates are unavailable"
