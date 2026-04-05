@@ -62,6 +62,7 @@ export async function Sidebar() {
         "/supervisor/reflections": "Review learner reflections and coach.",
         "/skills": "Explore skill gaps and strengths.",
         "/certificates": "View earned and available certificates.",
+        "/results": "Review your assessment scores and feedback.",
         "/feedback": "Read and share performance feedback.",
         "/notifications": "Track system and learning updates.",
     };

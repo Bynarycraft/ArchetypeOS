@@ -51,7 +51,7 @@ export async function proxy(request: NextRequest) {
   }
 
   if (userRole === "candidate") {
-    const candidateAllowedPrefixes = ["/candidate", "/courses", "/tests", "/notifications", "/auth"];
+    const candidateAllowedPrefixes = ["/candidate", "/courses", "/tests", "/notifications", "/results", "/auth"];
     const isCandidateAllowed = candidateAllowedPrefixes.some(
       (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`)
     );

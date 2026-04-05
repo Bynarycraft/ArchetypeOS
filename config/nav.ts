@@ -4,6 +4,7 @@ export const navConfig = {
         { label: "Dashboard", href: "/candidate", icon: "LayoutDashboard" },
         { label: "Assigned Course", href: "/courses", icon: "BookOpen" },
         { label: "Tests", href: "/tests", icon: "ClipboardList" },
+        { label: "Results", href: "/results", icon: "Award" },
         { label: "Notifications", href: "/notifications", icon: "Bell" },
     ],
     learner: [
@@ -15,6 +16,7 @@ export const navConfig = {
         { label: "Reflections", href: "/reflections", icon: "Notebook" },
         { label: "Skill Map", href: "/skills", icon: "Brain" },
         { label: "Certificates", href: "/certificates", icon: "Award" },
+        { label: "Results", href: "/results", icon: "Award" },
         { label: "Feedback", href: "/feedback", icon: "MessageSquare" },
         { label: "Notifications", href: "/notifications", icon: "Bell" },
     ],
