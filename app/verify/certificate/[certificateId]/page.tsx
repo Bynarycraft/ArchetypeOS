@@ -21,15 +21,11 @@ export default async function VerifyCertificatePage({ params }: VerifyPageProps)
       issuedAt: true,
       expiresAt: true,
       isVerified: true,
+      courseId: true,
       user: {
         select: {
           name: true,
           email: true,
-        },
-      },
-      course: {
-        select: {
-          title: true,
         },
       },
     },
@@ -42,8 +38,15 @@ export default async function VerifyCertificatePage({ params }: VerifyPageProps)
   const isExpired = certificate.expiresAt ? new Date(certificate.expiresAt) < new Date() : false;
   const isValid = certificate.isVerified && !isExpired;
 
+  const course = certificate.courseId
+    ? await prisma.course.findUnique({
+        where: { id: certificate.courseId },
+        select: { title: true },
+      })
+    : null;
+
   const learnerName = certificate.user.name || certificate.user.email || "Learner";
-  const courseTitle = certificate.course?.title || "Course Completion";
+  const courseTitle = course?.title || "Course Completion";
   const certNumber = certificate.certificateNumber;
 
   return (
