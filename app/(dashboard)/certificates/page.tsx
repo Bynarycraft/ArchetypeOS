@@ -24,6 +24,11 @@ export default function CertificatesPage() {
   const [items, setItems] = useState<CertificateItem[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const formatIssuedAt = (value: string) => {
+    const parsed = new Date(value);
+    return Number.isNaN(parsed.getTime()) ? "Unknown" : parsed.toLocaleString();
+  };
+
   useEffect(() => {
     const load = async () => {
       try {
@@ -72,17 +77,17 @@ export default function CertificatesPage() {
               </CardHeader>
               <CardContent className="text-sm text-muted-foreground space-y-2">
                 <div className="font-semibold text-foreground">{item.courseTitle}</div>
-                <div>Issued: {new Date(item.issuedAt).toLocaleString()}</div>
+                <div>Issued: {formatIssuedAt(item.issuedAt)}</div>
                 <div>Certificate No: {item.certificateNumber}</div>
                 {item.details && <div>Details: {item.details}</div>}
                 <div className="pt-2 flex flex-wrap gap-2">
                   <Button asChild size="sm" variant="outline" className="rounded-xl">
-                    <Link href={item.verificationUrl} target="_blank">
+                    <Link href={item.verificationUrl || "/certificates"} target="_blank">
                       <ShieldCheck className="mr-2 h-4 w-4" /> Verify
                     </Link>
                   </Button>
                   <Button asChild size="sm" className="rounded-xl">
-                    <a href={item.downloadUrl}>
+                    <a href={item.downloadUrl || "#"}>
                       <Download className="mr-2 h-4 w-4" /> Download PDF
                     </a>
                   </Button>

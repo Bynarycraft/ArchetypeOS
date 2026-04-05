@@ -24,10 +24,39 @@ export async function GET() {
         expiresAt: true,
         verificationCode: true,
         isVerified: true,
+        courseId: true,
       },
     });
 
-    return NextResponse.json(certificates);
+    const courseIds = Array.from(
+      new Set(certificates.map((certificate) => certificate.courseId).filter(Boolean))
+    );
+
+    const courses = courseIds.length
+      ? await prisma.course.findMany({
+          where: { id: { in: courseIds } },
+          select: { id: true, title: true },
+        })
+      : [];
+
+    const courseTitleById = new Map(courses.map((course) => [course.id, course.title]));
+
+    const payload = certificates.map((certificate) => ({
+      id: certificate.id,
+      issuedAt: certificate.issuedAt,
+      targetId: certificate.courseId,
+      courseTitle: courseTitleById.get(certificate.courseId) || "General Completion",
+      certificateNumber: certificate.certificateNumber,
+      verificationUrl: `/verify/certificate/${certificate.verificationCode || certificate.id}`,
+      downloadUrl: `/api/certificates/${certificate.id}/pdf`,
+      details: certificate.expiresAt
+        ? `Expires ${new Date(certificate.expiresAt).toLocaleDateString()}`
+        : certificate.isVerified
+          ? "Verified"
+          : null,
+    }));
+
+    return NextResponse.json(payload);
   } catch (error) {
     console.error("Fetch certificates error:", error);
     return NextResponse.json({ error: "Failed to fetch certificates" }, { status: 500 });
