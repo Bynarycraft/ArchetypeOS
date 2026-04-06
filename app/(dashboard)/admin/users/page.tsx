@@ -35,6 +35,7 @@ type User = {
     name: string;
     email: string;
     role: string;
+    status: string;
     archetype: string;
     createdAt: string;
 };
@@ -78,6 +79,10 @@ export default function AdminUsersPage() {
         } catch (_err) {
             toast.error("Failed to update user");
         }
+    };
+
+    const handleStatusUpdate = async (userId: string, status: "active" | "suspended" | "archived") => {
+        await handleUpdate(userId, { status });
     };
 
     const handleDecision = async (userId: string, decision: "accept" | "reject" | "pending") => {
@@ -135,6 +140,7 @@ export default function AdminUsersPage() {
                 points={[
                     "Review all registered users and current access level.",
                     "Promote or adjust roles across candidate, learner, supervisor, and admin.",
+                    "Suspend or archive accounts without changing the underlying role.",
                     "Assign archetypes for clearer learning path targeting.",
                 ]}
             />
@@ -146,6 +152,7 @@ export default function AdminUsersPage() {
                             <TableHead>Name</TableHead>
                             <TableHead>Email</TableHead>
                             <TableHead>Role</TableHead>
+                            <TableHead>Status</TableHead>
                             <TableHead>Archetype</TableHead>
                             <TableHead className="text-right">Actions</TableHead>
                         </TableRow>
@@ -158,6 +165,14 @@ export default function AdminUsersPage() {
                                 <TableCell>
                                     <Badge variant={user.role === 'admin' ? 'destructive' : 'secondary'}>
                                         {user.role}
+                                    </Badge>
+                                </TableCell>
+                                <TableCell>
+                                    <Badge
+                                        variant={user.status === 'active' ? 'secondary' : user.status === 'suspended' ? 'outline' : 'destructive'}
+                                        className="capitalize"
+                                    >
+                                        {user.status}
                                     </Badge>
                                 </TableCell>
                                 <TableCell>{user.archetype}</TableCell>
@@ -190,6 +205,23 @@ export default function AdminUsersPage() {
                                             </Button>
                                         </div>
                                     )}
+                                    <div className="mt-2 flex items-center justify-end gap-2">
+                                        {user.status !== "active" ? (
+                                            <Button size="sm" variant="outline" onClick={() => handleStatusUpdate(user.id, "active")}>
+                                                Activate
+                                            </Button>
+                                        ) : null}
+                                        {user.status !== "suspended" ? (
+                                            <Button size="sm" variant="secondary" onClick={() => handleStatusUpdate(user.id, "suspended")}>
+                                                Suspend
+                                            </Button>
+                                        ) : null}
+                                        {user.status !== "archived" ? (
+                                            <Button size="sm" variant="ghost" onClick={() => handleStatusUpdate(user.id, "archived")}>
+                                                Archive
+                                            </Button>
+                                        ) : null}
+                                    </div>
                                     <Dialog open={editingUser?.id === user.id} onOpenChange={(open) => !open && setEditingUser(null)}>
                                         <DialogTrigger asChild>
                                             <Button variant="ghost" size="icon" onClick={() => setEditingUser(user)}>
@@ -215,6 +247,23 @@ export default function AdminUsersPage() {
                                                             <SelectItem value="learner">Learner</SelectItem>
                                                             <SelectItem value="supervisor">Supervisor</SelectItem>
                                                             <SelectItem value="admin">Admin</SelectItem>
+                                                        </SelectContent>
+                                                    </Select>
+                                                </div>
+
+                                                <div className="space-y-2">
+                                                    <label className="text-sm font-medium">Status</label>
+                                                    <Select
+                                                        value={editingUser?.id === user.id ? editingUser.status : user.status}
+                                                        onValueChange={(val) => handleUpdate(user.id, { status: val as User["status"] })}
+                                                    >
+                                                        <SelectTrigger>
+                                                            <SelectValue placeholder="Select status" />
+                                                        </SelectTrigger>
+                                                        <SelectContent>
+                                                            <SelectItem value="active">Active</SelectItem>
+                                                            <SelectItem value="suspended">Suspended</SelectItem>
+                                                            <SelectItem value="archived">Archived</SelectItem>
                                                         </SelectContent>
                                                     </Select>
                                                 </div>

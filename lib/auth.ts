@@ -12,6 +12,7 @@ declare module "next-auth" {
             email?: string | null;
             image?: string | null;
             role?: string;
+                status?: string;
             archetype?: string;
         }
     }
@@ -21,6 +22,7 @@ declare module "next-auth" {
         email?: string | null;
         image?: string | null;
         role?: string;
+            status?: string;
         archetype?: string;
     }
 }
@@ -29,6 +31,7 @@ declare module "next-auth/jwt" {
     interface JWT {
         id: string;
         role?: string;
+        status?: string;
         archetype?: string;
     }
 }
@@ -71,6 +74,11 @@ export const authOptions: NextAuthOptions = {
                         return null;
                     }
 
+                    if (user.status && user.status.toLowerCase() !== "active") {
+                        console.log("[authorize] User account is inactive:", user.status);
+                        return null;
+                    }
+
                     // Compare password with bcrypt
                     const isValid = await bcrypt.compare(credentials.password, user.password);
                     console.log("[authorize] Password valid:", isValid);
@@ -86,6 +94,7 @@ export const authOptions: NextAuthOptions = {
                         email: user.email,
                         name: user.name,
                         role: user.role,
+                        status: user.status,
                         archetype: user.archetype || undefined,
                     };
                 } catch (error) {
@@ -101,6 +110,7 @@ export const authOptions: NextAuthOptions = {
             if (user) {
                 token.id = user.id as string;
                 token.role = user.role ? user.role.toLowerCase() : undefined;
+                token.status = user.status ? user.status.toLowerCase() : undefined;
                 token.archetype = user.archetype as string;
             }
             console.log("[jwt] Returning token:", { id: token.id });
@@ -110,8 +120,21 @@ export const authOptions: NextAuthOptions = {
             console.log("[session] Called with token:", { id: token.id });
             if (session && session.user) {
                 session.user.id = token.id as string;
-                session.user.role = token.role ? token.role.toLowerCase() : undefined;
-                session.user.archetype = token.archetype as string;
+                try {
+                    const latestUser = await prisma.user.findUnique({
+                        where: { id: token.id as string },
+                        select: { role: true, status: true, archetype: true },
+                    });
+
+                    session.user.role = latestUser?.role ? latestUser.role.toLowerCase() : token.role ? token.role.toLowerCase() : undefined;
+                    session.user.status = latestUser?.status ? latestUser.status.toLowerCase() : token.status ? token.status.toLowerCase() : undefined;
+                    session.user.archetype = latestUser?.archetype ?? (token.archetype as string);
+                } catch (error) {
+                    console.error("[session] Failed to refresh user role:", error);
+                    session.user.role = token.role ? token.role.toLowerCase() : undefined;
+                    session.user.status = token.status ? token.status.toLowerCase() : undefined;
+                    session.user.archetype = token.archetype as string;
+                }
             }
             console.log("[session] Returning session:", { user: session?.user });
             return session;

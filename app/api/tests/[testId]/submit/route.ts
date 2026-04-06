@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+import { promoteCandidateToLearnerIfPassed } from "@/lib/candidate-promotion";
 
 export async function POST(
     req: Request,
@@ -122,6 +123,16 @@ export async function POST(
                     progress: 100,
                     completedAt: new Date()
                 }
+            });
+
+            await promoteCandidateToLearnerIfPassed({
+                userId: session.user.id,
+                courseId: test.courseId,
+                testId: test.id,
+                testTitle: test.title,
+                courseTitle: test.course.title,
+                score,
+                passingScore,
             });
 
             const existing = await prisma.auditLog.findFirst({

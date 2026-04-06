@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { promoteCandidateToLearnerIfPassed } from "@/lib/candidate-promotion";
 
 export async function PATCH(
   req: Request,
@@ -22,6 +23,20 @@ export async function PATCH(
   }
 
   try {
+    const test = await prisma.test.findUnique({
+      where: { id: testId },
+      select: {
+        passingScore: true,
+        courseId: true,
+        title: true,
+        course: { select: { title: true } },
+      },
+    });
+
+    if (!test) {
+      return NextResponse.json({ error: "Assessment not found" }, { status: 404 });
+    }
+
     const result = await prisma.testResult.findFirst({
       where: {
         id: resultId,
@@ -43,6 +58,18 @@ export async function PATCH(
         gradedAt: new Date(),
       },
     });
+
+    if (score >= test.passingScore) {
+      await promoteCandidateToLearnerIfPassed({
+        userId: result.userId,
+        courseId: test.courseId,
+        testId,
+        testTitle: test.title,
+        courseTitle: test.course.title,
+        score,
+        passingScore: test.passingScore,
+      });
+    }
 
     return NextResponse.json(updated);
   } catch (error) {

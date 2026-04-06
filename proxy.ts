@@ -17,7 +17,29 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL("/auth/signin", request.url));
   }
 
-  const userRole = token.role as string;
+  let userRole = token.role as string;
+
+  try {
+    const roleResponse = await fetch(new URL("/api/auth/current", request.url), {
+      headers: {
+        cookie: request.headers.get("cookie") ?? "",
+      },
+      cache: "no-store",
+    });
+
+    if (roleResponse.ok) {
+      const currentUser = (await roleResponse.json()) as { role?: string; status?: string };
+      if (currentUser.role) {
+        userRole = currentUser.role;
+      }
+
+      if (currentUser.status && currentUser.status !== "active") {
+        return NextResponse.redirect(new URL("/auth/signin?status=inactive", request.url));
+      }
+    }
+  } catch (error) {
+    console.error("[proxy] Failed to refresh current role:", error);
+  }
 
   // Role-based route protection
   if (pathname.startsWith("/candidate") && userRole !== "candidate") {

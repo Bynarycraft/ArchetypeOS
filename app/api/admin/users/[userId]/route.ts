@@ -18,15 +18,21 @@ export async function PATCH(
 
   try {
     const body = await req.json();
-    const { role, archetype } = body;
+    const { role, archetype, status } = body;
     const normalizedRole = role ? String(role).toLowerCase() : undefined;
+    const normalizedStatus = status ? String(status).toLowerCase() : undefined;
     const normalizedArchetype = archetype === "NONE" ? null : normalizeArchetype(archetype);
 
     const validRoles = ['candidate', 'learner', 'supervisor', 'admin'];
+    const validStatuses = ['active', 'suspended', 'archived'];
     const validArchetypes = [...SUPPORTED_ARCHETYPES, 'NONE'];
 
     if (normalizedRole && !validRoles.includes(normalizedRole)) {
       return NextResponse.json({ error: "Invalid role" }, { status: 400 });
+    }
+
+    if (normalizedStatus && !validStatuses.includes(normalizedStatus)) {
+      return NextResponse.json({ error: "Invalid status" }, { status: 400 });
     }
 
     if (archetype && !validArchetypes.includes(archetype)) {
@@ -37,6 +43,7 @@ export async function PATCH(
       where: { id: userId },
       data: {
         ...(normalizedRole && { role: normalizedRole }),
+        ...(normalizedStatus && { status: normalizedStatus }),
         ...(archetype !== undefined && { archetype: normalizedArchetype }),
       },
     });

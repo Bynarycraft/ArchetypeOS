@@ -15,6 +15,7 @@ model User {
   password              String?
   image                 String?
   role                  String             @default("candidate")
+  status                String             @default("active")
   archetype             String?
   supervisorId          String?
   totalLearningHours    Int                @default(0)
@@ -37,6 +38,7 @@ model User {
   learners              User[]             @relation("SupervisorRelation")
 
   @@index([role])
+  @@index([status])
   @@index([archetype])
   @@index([supervisorId])
 }

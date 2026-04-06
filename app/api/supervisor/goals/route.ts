@@ -35,15 +35,25 @@ export async function GET() {
       orderBy: { timestamp: "desc" },
     });
 
-    const latestByUser: Record<string, number> = {};
+    const latestByUser: Record<
+      string,
+      { goalMinutes: number; dueDate: string | null }
+    > = {};
 
     logs.forEach((log: { targetId: string | null; details: string | null }) => {
       if (!log.targetId || latestByUser[log.targetId]) return;
       if (!log.details) return;
       try {
-        const details = JSON.parse(log.details) as { goalMinutes?: number; weekStart?: string };
+        const details = JSON.parse(log.details) as {
+          goalMinutes?: number;
+          weekStart?: string;
+          dueDate?: string | null;
+        };
         if (details.weekStart === weekStart && typeof details.goalMinutes === "number") {
-          latestByUser[log.targetId] = details.goalMinutes;
+          latestByUser[log.targetId] = {
+            goalMinutes: details.goalMinutes,
+            dueDate: typeof details.dueDate === "string" ? details.dueDate : null,
+          };
         }
       } catch (_error) {
         return;
@@ -52,7 +62,8 @@ export async function GET() {
 
     const payload = learners.map((learner: { id: string; name: string | null; email: string | null }) => ({
       ...learner,
-      goalMinutes: latestByUser[learner.id] || 0,
+      goalMinutes: latestByUser[learner.id]?.goalMinutes || 0,
+      dueDate: latestByUser[learner.id]?.dueDate || null,
     }));
 
     return NextResponse.json({ weekStart, learners: payload });
@@ -72,10 +83,17 @@ export async function POST(req: Request) {
 
   try {
     const body = await req.json();
-    const { learnerId, goalMinutes } = body || {};
+    const { learnerId, goalMinutes, dueDate } = body || {};
 
     if (!learnerId || typeof goalMinutes !== "number") {
       return NextResponse.json({ error: "learnerId and goalMinutes are required" }, { status: 400 });
+    }
+
+    if (dueDate !== undefined && dueDate !== null && String(dueDate).trim().length > 0) {
+      const parsedDueDate = new Date(String(dueDate));
+      if (Number.isNaN(parsedDueDate.getTime())) {
+        return NextResponse.json({ error: "Invalid dueDate" }, { status: 400 });
+      }
     }
 
     if (role === "supervisor") {
@@ -93,6 +111,7 @@ export async function POST(req: Request) {
     const details = {
       goalMinutes,
       weekStart: weekStart.toISOString(),
+      dueDate: dueDate ? String(dueDate) : null,
     };
 
     await prisma.auditLog.create({

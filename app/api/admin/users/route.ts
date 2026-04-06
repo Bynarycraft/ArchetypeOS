@@ -19,6 +19,7 @@ export async function GET(_req: Request) {
                 name: true,
                 email: true,
                 role: true,
+                status: true,
                 archetype: true,
                 createdAt: true,
             }

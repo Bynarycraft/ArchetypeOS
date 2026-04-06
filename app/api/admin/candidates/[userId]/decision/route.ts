@@ -46,7 +46,7 @@ export async function PATCH(
     if (decision === "accept") {
       await prisma.user.update({
         where: { id: userId },
-        data: { role: "learner" },
+        data: { role: "learner", status: "active" },
       });
     }
 

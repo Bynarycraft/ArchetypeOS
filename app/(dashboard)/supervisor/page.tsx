@@ -50,6 +50,14 @@ type IdleLearner = {
   lastSessionAt: string | null;
 };
 
+type WeeklyGoal = {
+  id: string;
+  name: string | null;
+  email: string | null;
+  goalMinutes: number;
+  dueDate: string | null;
+};
+
 export default function SupervisorPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
@@ -65,14 +73,18 @@ export default function SupervisorPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [learners, setLearners] = useState<Learner[]>([]);
   const [idleLearners, setIdleLearners] = useState<IdleLearner[]>([]);
+  const [weeklyGoals, setWeeklyGoals] = useState<WeeklyGoal[]>([]);
+  const [goalDrafts, setGoalDrafts] = useState<Record<string, { goalMinutes: string; dueDate: string }>>({});
+  const [savingGoalById, setSavingGoalById] = useState<Record<string, boolean>>({});
   const [loadingOverview, setLoadingOverview] = useState(true);
 
   const loadOverview = useCallback(async () => {
     setLoadingOverview(true);
     try {
-      const [learnersRes, idleRes] = await Promise.all([
+      const [learnersRes, idleRes, goalsRes] = await Promise.all([
         fetch("/api/supervisor/learners"),
         fetch("/api/supervisor/idle?days=3"),
+        fetch("/api/supervisor/goals"),
       ]);
 
       if (learnersRes.ok) {
@@ -82,6 +94,21 @@ export default function SupervisorPage() {
       if (idleRes.ok) {
         const idlePayload = await idleRes.json();
         setIdleLearners(idlePayload.idleLearners || []);
+      }
+
+      if (goalsRes.ok) {
+        const goalsPayload = await goalsRes.json();
+        const nextGoals = (goalsPayload.learners || []) as WeeklyGoal[];
+        setWeeklyGoals(nextGoals);
+        setGoalDrafts(
+          nextGoals.reduce<Record<string, { goalMinutes: string; dueDate: string }>>((acc, learner) => {
+            acc[learner.id] = {
+              goalMinutes: String(learner.goalMinutes || 0),
+              dueDate: learner.dueDate ? new Date(learner.dueDate).toISOString().slice(0, 10) : "",
+            };
+            return acc;
+          }, {}),
+        );
       }
     } catch (error) {
       console.error("Failed to load supervisor overview:", error);
@@ -163,6 +190,55 @@ export default function SupervisorPage() {
         }, 0) / learners.length,
       )
     : 0;
+
+  const saveWeeklyGoal = async (learnerId: string) => {
+    const draft = goalDrafts[learnerId];
+    const goalMinutes = Number(draft?.goalMinutes);
+    const dueDate = draft?.dueDate?.trim() || "";
+
+    if (!Number.isFinite(goalMinutes) || goalMinutes < 0) {
+      toast.error("Goal minutes must be a valid number.");
+      return;
+    }
+
+    if (dueDate) {
+      const parsedDueDate = new Date(dueDate);
+      if (Number.isNaN(parsedDueDate.getTime())) {
+        toast.error("Enter a valid deadline date.");
+        return;
+      }
+    }
+
+    setSavingGoalById((prev) => ({ ...prev, [learnerId]: true }));
+    try {
+      const res = await fetch("/api/supervisor/goals", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          learnerId,
+          goalMinutes,
+          dueDate: dueDate || null,
+        }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({ error: "Failed to update weekly goal" }));
+        toast.error(data.error || "Failed to update weekly goal");
+        return;
+      }
+
+      toast.success("Weekly goal updated.");
+      await loadOverview();
+    } catch (_error) {
+      toast.error("Failed to update weekly goal.");
+    } finally {
+      setSavingGoalById((prev) => {
+        const next = { ...prev };
+        delete next[learnerId];
+        return next;
+      });
+    }
+  };
 
   const submitGrade = async (submission: Submission) => {
     const rawScore = scores[submission.id] ?? String(submission.score ?? "");
@@ -293,6 +369,64 @@ export default function SupervisorPage() {
                 </Badge>
               </div>
             ))
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">Weekly Goals</CardTitle>
+          <CardDescription>Set a learning target and optional deadline for each learner.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {loadingOverview ? (
+            <p className="text-sm text-muted-foreground">Loading weekly goals...</p>
+          ) : weeklyGoals.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No weekly goals have been set yet.</p>
+          ) : (
+            weeklyGoals.map((learner) => {
+              const draft = goalDrafts[learner.id] || { goalMinutes: String(learner.goalMinutes || 0), dueDate: "" };
+              const isSaving = !!savingGoalById[learner.id];
+
+              return (
+                <div key={learner.id} className="grid gap-3 rounded-2xl border p-4 lg:grid-cols-[1.5fr_0.7fr_0.9fr_auto] lg:items-end">
+                  <div>
+                    <p className="font-medium text-sm">{learner.name || "Unnamed learner"}</p>
+                    <p className="text-xs text-muted-foreground">{learner.email || "No email"}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs uppercase tracking-widest text-muted-foreground">Minutes</label>
+                    <Input
+                      type="number"
+                      min={0}
+                      value={draft.goalMinutes}
+                      onChange={(event) =>
+                        setGoalDrafts((prev) => ({
+                          ...prev,
+                          [learner.id]: { ...draft, goalMinutes: event.target.value },
+                        }))
+                      }
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs uppercase tracking-widest text-muted-foreground">Deadline</label>
+                    <Input
+                      type="date"
+                      value={draft.dueDate}
+                      onChange={(event) =>
+                        setGoalDrafts((prev) => ({
+                          ...prev,
+                          [learner.id]: { ...draft, dueDate: event.target.value },
+                        }))
+                      }
+                    />
+                  </div>
+                  <Button className="w-full lg:w-auto" variant="outline" onClick={() => saveWeeklyGoal(learner.id)} disabled={isSaving}>
+                    {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : "Save"}
+                  </Button>
+                </div>
+              );
+            })
           )}
         </CardContent>
       </Card>
