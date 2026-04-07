@@ -12,6 +12,40 @@ This document summarizes the rebuilt ArchetypeOS platform and the phase roadmap 
 
 The detailed feature mapping lives in [PROJECT_PHASES.md](PROJECT_PHASES.md).
 
+## Release Sign-Off (2026-04-07)
+
+Status: approved for production on current phase scope.
+
+### Verified Gates
+- Lint: pass (warnings only, no blocking errors).
+- Typecheck: pass.
+- Production build: pass.
+- Production deployment: pass.
+
+### Production Smoke Matrix
+| Area | Check | Result |
+|------|-------|--------|
+| Public auth | `/auth/signin` reachable | PASS (200) |
+| Unauthenticated guard | `/candidate` redirects | PASS (307 -> `/auth/signin`) |
+| Unauthenticated guard | `/admin/dashboard` redirects | PASS (307 -> `/auth/signin`) |
+| Candidate role routes | `/candidate`, `/results`, `/notifications` | PASS |
+| Admin role routes | `/admin/dashboard`, `/dashboard` redirect behavior | PASS |
+| Supervisor role routes | `/supervisor` | PASS |
+| Learner role routes | `/certificates` | PASS |
+| Admin API access | `/api/admin/users`, `/api/admin/audit-logs` | PASS (200) |
+| Supervisor boundary | `/api/admin/users` forbidden for supervisor | PASS (403) |
+| Candidate boundary | `/api/admin/users` forbidden for candidate | PASS (403) |
+| Learner boundary | `/api/supervisor/learners` forbidden for learner | PASS (403) |
+| Learning APIs | `/api/courses`, `/api/tests` for learner/candidate | PASS (200) |
+
+### Phase Alignment Confirmation
+- Phase 1 live capabilities verified: authentication, RBAC, dashboards, course/test flows, and protected routing behavior.
+- Phase 2 live/partial boundary preserved: no claims added for future-only integrations or unfinished analytics/message subsystems.
+
+### Notes
+- Sign-off reflects current documented scope in [PROJECT_PHASES.md](PROJECT_PHASES.md), not future-phase features.
+- Canonical repository remote is `https://github.com/Bynarycraft/ArchetypeOS.git`.
+
 ## What Was Built
 
 ### 1. Complete Prisma Database Schema ✅
