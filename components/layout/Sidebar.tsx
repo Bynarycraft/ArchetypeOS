@@ -220,7 +220,7 @@ export async function Sidebar() {
                                             <span className="text-[10px] uppercase tracking-wide">{session.user.role}</span>
                                         </Link>
                                         <SheetClose asChild>
-                                            <SignOutButton />
+                                            <SignOutButton showLabel className="text-destructive hover:text-destructive" />
                                         </SheetClose>
                                     </div>
                                 </div>
