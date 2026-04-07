@@ -1,5 +1,6 @@
 "use client";
 
+import * as React from "react";
 import { signOut } from "next-auth/react";
 import { LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
