@@ -5,7 +5,7 @@ import { navConfig } from "@/config/nav";
 import { ModeToggle } from "@/components/theme-toggle";
 import { LayoutDashboard, BookOpen, Users, BarChart3, Clock, Map, ClipboardList, ShieldCheck, Menu, Notebook, Brain, Award, MessageSquare, Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetClose, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 
 const iconMap = {
     LayoutDashboard,
@@ -100,31 +100,52 @@ export async function Sidebar() {
 
     const sections = buildSections(session.user.role, items as NavItem[]);
 
-    const renderNav = () => (
+    const renderNav = (closeOnNavigate = false) => (
         <nav className="flex-1 space-y-5 overflow-y-auto pr-1">
             {sections.map((section) => (
                 <div key={section.title} className="space-y-2">
                     <p className="px-4 text-[10px] font-black uppercase tracking-[0.18em] text-muted-foreground/80">{section.title}</p>
                     <div className="space-y-1.5">
                         {section.items.map((item) => {
-                const Icon = iconMap[item.icon as keyof typeof iconMap];
-                return (
-                    <Link
-                        key={item.href}
-                        href={item.href}
-                        title={navDescriptions[item.href] || item.label}
-                        className="group flex items-center gap-4 rounded-2xl px-4 py-3 text-sm font-bold transition-all hover:bg-primary/10 hover:text-primary relative overflow-hidden active:scale-95"
-                    >
-                        <div className="relative z-10 p-2 rounded-xl bg-secondary/50 group-hover:bg-primary/20 transition-all duration-300 group-hover:rotate-6">
-                            {Icon && <Icon className="h-4 w-4" />}
-                        </div>
-                        <div className="relative z-10 min-w-0">
-                            <div>{item.label}</div>
-                            <div className="text-[10px] font-medium text-muted-foreground truncate">{navDescriptions[item.href]}</div>
-                        </div>
-                        <div className="absolute inset-0 bg-gradient-to-r from-primary/0 to-primary/0 group-hover:to-primary/5 transition-all duration-500" />
-                    </Link>
-                );
+                            const Icon = iconMap[item.icon as keyof typeof iconMap];
+                            if (closeOnNavigate) {
+                                return (
+                                    <SheetClose asChild key={item.href}>
+                                        <Link
+                                            href={item.href}
+                                            title={navDescriptions[item.href] || item.label}
+                                            className="group flex items-center gap-4 rounded-2xl px-4 py-3 text-sm font-bold transition-all hover:bg-primary/10 hover:text-primary relative overflow-hidden active:scale-95"
+                                        >
+                                            <div className="relative z-10 p-2 rounded-xl bg-secondary/50 group-hover:bg-primary/20 transition-all duration-300 group-hover:rotate-6">
+                                                {Icon && <Icon className="h-4 w-4" />}
+                                            </div>
+                                            <div className="relative z-10 min-w-0">
+                                                <div>{item.label}</div>
+                                                <div className="text-[10px] font-medium text-muted-foreground truncate">{navDescriptions[item.href]}</div>
+                                            </div>
+                                            <div className="absolute inset-0 bg-gradient-to-r from-primary/0 to-primary/0 group-hover:to-primary/5 transition-all duration-500" />
+                                        </Link>
+                                    </SheetClose>
+                                );
+                            }
+
+                            return (
+                                <Link
+                                    key={item.href}
+                                    href={item.href}
+                                    title={navDescriptions[item.href] || item.label}
+                                    className="group flex items-center gap-4 rounded-2xl px-4 py-3 text-sm font-bold transition-all hover:bg-primary/10 hover:text-primary relative overflow-hidden active:scale-95"
+                                >
+                                    <div className="relative z-10 p-2 rounded-xl bg-secondary/50 group-hover:bg-primary/20 transition-all duration-300 group-hover:rotate-6">
+                                        {Icon && <Icon className="h-4 w-4" />}
+                                    </div>
+                                    <div className="relative z-10 min-w-0">
+                                        <div>{item.label}</div>
+                                        <div className="text-[10px] font-medium text-muted-foreground truncate">{navDescriptions[item.href]}</div>
+                                    </div>
+                                    <div className="absolute inset-0 bg-gradient-to-r from-primary/0 to-primary/0 group-hover:to-primary/5 transition-all duration-500" />
+                                </Link>
+                            );
                         })}
                     </div>
                 </div>
@@ -180,7 +201,7 @@ export async function Sidebar() {
                 <Link href={homeHref} className="font-black tracking-tight">ArchetypeOS</Link>
                 <div className="flex items-center gap-2">
                     <ModeToggle />
-                    <Sheet>
+                    <Sheet modal={false}>
                         <SheetTrigger asChild>
                             <Button variant="outline" size="icon" aria-label="Open navigation menu">
                                 <Menu className="h-4 w-4" />
@@ -191,7 +212,7 @@ export async function Sidebar() {
                                 <SheetTitle>Navigation</SheetTitle>
                             </SheetHeader>
                             <div className="mt-6 flex h-[calc(100%-3rem)] flex-col">
-                                {renderNav()}
+                                {renderNav(true)}
                             </div>
                         </SheetContent>
                     </Sheet>
