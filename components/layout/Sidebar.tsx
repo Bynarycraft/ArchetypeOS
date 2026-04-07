@@ -213,6 +213,17 @@ export async function Sidebar() {
                             </SheetHeader>
                             <div className="mt-6 flex h-[calc(100%-3rem)] flex-col">
                                 {renderNav(true)}
+                                <div className="mt-4 border-t border-border/40 pt-4">
+                                    <div className="flex items-center justify-between gap-3 rounded-2xl bg-card/80 p-3">
+                                        <Link href="/profile" className="min-w-0 text-xs font-semibold text-muted-foreground">
+                                            <span className="block truncate">{session.user.name || session.user.email}</span>
+                                            <span className="text-[10px] uppercase tracking-wide">{session.user.role}</span>
+                                        </Link>
+                                        <SheetClose asChild>
+                                            <SignOutButton />
+                                        </SheetClose>
+                                    </div>
+                                </div>
                             </div>
                         </SheetContent>
                     </Sheet>

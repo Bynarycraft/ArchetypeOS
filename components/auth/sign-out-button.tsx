@@ -1,30 +1,39 @@
 "use client";
 
 import { signOut } from "next-auth/react";
-import { useRouter } from "next/navigation";
 import { LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
-export function SignOutButton() {
-    const router = useRouter();
+type SignOutButtonProps = React.ComponentPropsWithoutRef<typeof Button>;
 
-    const handleSignOut = async () => {
-        try {
-            await signOut({ redirect: false });
-        } finally {
-            router.push("/auth/signin");
-            router.refresh();
-        }
-    };
+export const SignOutButton = React.forwardRef<HTMLButtonElement, SignOutButtonProps>(
+    ({ className, onClick, ...props }, ref) => {
+        const handleClick: React.MouseEventHandler<HTMLButtonElement> = async (event) => {
+            onClick?.(event);
+            if (event.defaultPrevented) {
+                return;
+            }
 
-    return (
-        <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 rounded-full text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
-            onClick={() => signOut({ callbackUrl: "/auth" })}
-        >
-            <LogOut className="h-4 w-4" />
-        </Button>
-    );
-}
+            await signOut({ callbackUrl: "/auth" });
+        };
+
+        return (
+            <Button
+                ref={ref}
+                variant="ghost"
+                size="icon"
+                className={cn(
+                    "h-8 w-8 rounded-full text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors",
+                    className,
+                )}
+                onClick={handleClick}
+                {...props}
+            >
+                <LogOut className="h-4 w-4" />
+            </Button>
+        );
+    },
+);
+
+SignOutButton.displayName = "SignOutButton";
